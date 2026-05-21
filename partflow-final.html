@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>PARTFLOW</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<meta name="theme-color" content="#0A84FF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PARTFLOW">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#F2F2F7;--card:#fff;--dark:#1C1C1E;--sub:#8E8E93;--line:#E5E5EA;--acc:#0A84FF;--green:#30D158;--red:#FF453A;--orange:#FF9F0A;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);font-family:'Pretendard',sans-serif;color:var(--dark);letter-spacing:-.04em;padding:68px 0 96px;}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:68px;background:rgba(255,255,255,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);}
+.ti{max-width:640px;margin:0 auto;padding:0 18px;height:100%;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#0A84FF,#0055CC);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;}
+.logo-name{font-size:19px;font-weight:900;letter-spacing:-.07em;}
+.logo-name b{color:var(--acc);}
+.logo-sub{font-size:9px;color:var(--sub);font-weight:700;letter-spacing:.04em;margin-top:1px;}
+.msel{background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700;font-family:'Pretendard',sans-serif;color:var(--dark);outline:none;}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.97);border-top:1px solid var(--line);}
+.tb-row{max-width:640px;margin:0 auto;display:flex;padding:8px 0 20px;}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:6px 4px;border-radius:12px;transition:.15s;font-family:'Pretendard',sans-serif;}
+.tb.on{background:rgba(10,132,255,.1);}
+.tb-icon{font-size:22px;}
+.tb-lbl{font-size:10px;font-weight:700;color:var(--sub);}
+.tb.on .tb-lbl{color:var(--acc);font-weight:800;}
+.page{display:none;max-width:640px;margin:0 auto;padding:14px 15px;}
+.page.on{display:block;animation:up .2s ease;}
+@keyframes up{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.card{background:var(--card);border-radius:18px;padding:18px;box-shadow:0 2px 16px rgba(0,0,0,.055);margin-bottom:12px;}
+.card-flush{background:var(--card);border-radius:18px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.055);margin-bottom:12px;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat{background:var(--card);border-radius:18px;padding:16px;box-shadow:0 2px 16px rgba(0,0,0,.055);}
+.stat-lbl{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:5px;}
+.stat-val{font-size:24px;font-weight:900;letter-spacing:-.05em;}
+.sec{margin-bottom:22px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;padding:0 3px;margin-bottom:9px;}
+.sec-t{font-size:11px;font-weight:900;color:var(--sub);letter-spacing:.08em;text-transform:uppercase;}
+.field{margin-bottom:16px;}
+.field label{font-size:11px;font-weight:800;color:var(--sub);display:block;margin-bottom:7px;letter-spacing:.04em;text-transform:uppercase;}
+.fin{width:100%;border:none;border-bottom:2px solid var(--line);padding:11px 0;font-size:16px;font-weight:600;font-family:'Pretendard',sans-serif;color:var(--dark);background:transparent;outline:none;transition:.2s;}
+.fin:focus{border-color:var(--acc);}
+.fsel{width:100%;border:none;border-bottom:2px solid var(--line);padding:11px 0;font-size:16px;font-weight:600;font-family:'Pretendard',sans-serif;color:var(--dark);background:transparent;outline:none;appearance:none;}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:16px;border-radius:14px;font-size:16px;font-weight:800;font-family:'Pretendard',sans-serif;cursor:pointer;border:none;transition:.14s;}
+.btn:active{transform:scale(.97);}
+.btn-a{background:linear-gradient(135deg,#0A84FF,#0055CC);color:#fff;box-shadow:0 4px 16px rgba(10,132,255,.28);}
+.btn-g{background:linear-gradient(135deg,#30D158,#1A7A3C);color:#fff;box-shadow:0 4px 16px rgba(48,209,88,.25);}
+.btn-o{background:linear-gradient(135deg,#FF9F0A,#C47000);color:#fff;box-shadow:0 4px 16px rgba(255,159,10,.25);}
+.btn-d{background:var(--dark);color:#fff;}
+.btn-out{background:transparent;border:1.5px solid var(--line);color:var(--dark);}
+.btn-sm{padding:10px 15px;font-size:13px;border-radius:12px;width:auto;}
+.btn-row{display:flex;gap:9px;}
+/* 파트너 */
+.pi{display:flex;align-items:center;padding:14px 18px;border-bottom:.5px solid var(--line);gap:12px;}
+.pi:last-child{border:none;}
+.av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 3px 10px rgba(0,0,0,.14);}
+.pi-info{flex:1;min-width:0;}
+.pi-top{display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap;}
+.pi-name{font-size:16px;font-weight:900;}
+.pi-role{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--bg);color:var(--sub);}
+.pi-st{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;}
+.st-ok{background:#E3F9EA;color:#1A7A3C;}
+.st-no{background:#FFF3E0;color:#B07000;}
+.pi-sub{font-size:12px;color:var(--sub);font-weight:600;}
+.pi-wage{font-size:15px;font-weight:900;color:var(--acc);cursor:pointer;margin-bottom:5px;}
+.chips{display:flex;gap:5px;flex-wrap:wrap;}
+.chip{padding:9px 13px;border-radius:10px;font-size:12px;font-weight:800;border:none;cursor:pointer;font-family:'Pretendard',sans-serif;transition:.12s;}
+.chip:active{transform:scale(.93);}
+.ch-b{background:#E1F0FF;color:var(--acc);}
+.ch-r{background:#FFE5E3;color:var(--red);}
+.ch-k{background:#FEE500;color:#3A1D1D;}
+/* 시간단위 */
+.tu-btn{flex:1;padding:10px 0;border-radius:10px;border:1.5px solid var(--line);font-size:14px;font-weight:800;cursor:pointer;background:var(--card);color:var(--sub);font-family:'Pretendard',sans-serif;transition:.13s;}
+.tu-btn.on{background:var(--acc);color:#fff;border-color:var(--acc);}
+/* 역량평가 */
+.q-wrap{margin-bottom:18px;background:var(--bg);border-radius:14px;padding:14px;}
+.q-t{font-size:14px;font-weight:800;margin-bottom:6px;line-height:1.4;}
+.q-hint{font-size:11px;color:var(--sub);font-weight:600;margin-bottom:10px;padding:5px 8px;background:rgba(0,0,0,.03);border-radius:6px;}
+.q-num{color:var(--acc);margin-right:5px;}
+.sc-row{display:flex;gap:7px;}
+.sc{flex:1;height:48px;border-radius:12px;border:2px solid var(--line);font-size:17px;font-weight:900;color:#ccc;background:#fff;cursor:pointer;transition:.12s;font-family:'Pretendard',sans-serif;}
+.sc.on{background:var(--acc);color:#fff;border-color:var(--acc);}
+.eval-res{background:var(--bg);border-radius:14px;padding:16px;margin:16px 0;}
+.er-row{display:flex;justify-content:space-between;align-items:center;}
+.er-lbl{font-size:11px;font-weight:700;color:var(--sub);margin-bottom:3px;}
+.er-val{font-size:26px;font-weight:900;}
+.er-msg{font-size:12px;font-weight:700;color:var(--sub);margin-top:8px;}
+/* 달력 */
+.cc-wrap{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:12px;-webkit-overflow-scrolling:touch;}
+.cc-wrap::-webkit-scrollbar{display:none;}
+.cc{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:50px;border:2px solid var(--line);background:var(--card);cursor:pointer;white-space:nowrap;transition:.14s;flex-shrink:0;font-size:13px;font-weight:700;}
+.cc.sel{border-color:transparent;color:#fff;}
+.cc-dot{width:9px;height:9px;border-radius:50%;}
+.legend{display:flex;gap:10px;margin-bottom:11px;flex-wrap:wrap;}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--sub);}
+.leg-dot{width:9px;height:9px;border-radius:3px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.dow{text-align:center;font-size:10px;font-weight:900;color:var(--sub);padding:7px 0;}
+.dow.s{color:var(--red);}
+.dow.sa{color:var(--acc);}
+.cday{background:var(--card);border-radius:12px;min-height:68px;padding:7px 5px;cursor:pointer;transition:.12s;border:1.5px solid transparent;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.cday:active{transform:scale(.92);}
+.cday.emp{background:transparent;cursor:default;box-shadow:none;border:none;}
+.cday.tod{border-color:var(--acc);}
+.cday.s .dn{color:var(--red);}
+.cday.sa .dn{color:var(--acc);}
+.dn{font-size:11px;font-weight:900;color:var(--sub);margin-bottom:3px;}
+.ctag{font-size:8px;font-weight:900;padding:2px 3px;border-radius:3px;margin-bottom:2px;display:flex;justify-content:space-between;cursor:pointer;}
+.t-am{background:#E1F0FF;color:#005BB5;}
+.t-pm{background:#FFF3E0;color:#B07000;}
+.t-fl{background:#E3F9EA;color:#1A7A3C;}
+.t-hi{background:#FFE5E3;color:var(--red);}
+.cal-info{text-align:center;font-size:13px;font-weight:700;color:var(--sub);padding:8px 0;}
+/* 정산 */
+.sc-card{background:var(--card);border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 2px 16px rgba(0,0,0,.055);}
+.sch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sch-l{display:flex;align-items:center;gap:11px;}
+.sc-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:0 3px 10px rgba(0,0,0,.14);}
+.sc-name{font-size:16px;font-weight:900;margin-bottom:2px;}
+.sc-sub2{font-size:11px;color:var(--sub);font-weight:600;}
+.sc-body{background:var(--bg);border-radius:12px;padding:14px;}
+.sc-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
+.sc-lbl{color:var(--sub);font-weight:600;}
+.sc-v{font-weight:700;}
+.sc-v.r{color:var(--red);}
+.sc-row.tot{border-top:1.5px solid rgba(0,0,0,.08);margin-top:7px;padding-top:10px;font-size:16px;font-weight:900;}
+.sc-row.tot .sc-v{color:var(--acc);}
+.ins-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:.5px solid var(--line);}
+.ins-row:last-child{border:none;}
+.ins-name{font-size:15px;font-weight:700;}
+.ins-sub{font-size:11px;color:var(--sub);margin-top:2px;font-weight:600;}
+.ins-r{display:flex;align-items:center;gap:10px;}
+.ins-rate{font-size:13px;font-weight:800;color:var(--acc);}
+.tog{width:50px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;transition:.2s;background:var(--line);}
+.tog.on{background:var(--acc);}
+.tog::after{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.18);}
+.tog.on::after{left:25px;}
+/* 출퇴근 */
+.att-item{display:flex;align-items:center;padding:14px 18px;border-bottom:.5px solid var(--line);gap:12px;}
+.att-item:last-child{border:none;}
+.att-info{flex:1;}
+.att-name{font-size:16px;font-weight:900;margin-bottom:3px;}
+.att-time{font-size:12px;color:var(--sub);font-weight:600;}
+.wbadge{background:#E3F9EA;color:#1A7A3C;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;margin-left:6px;}
+.att-btn{padding:11px 16px;border-radius:12px;font-size:13px;font-weight:800;border:none;cursor:pointer;font-family:'Pretendard',sans-serif;transition:.12s;min-width:70px;text-align:center;}
+.att-btn:active{transform:scale(.92);}
+.btn-in{background:linear-gradient(135deg,#30D158,#1A7A3C);color:#fff;box-shadow:0 3px 10px rgba(48,209,88,.28);}
+.btn-out2{background:linear-gradient(135deg,#FF453A,#C0392B);color:#fff;box-shadow:0 3px 10px rgba(255,69,58,.28);}
+.btn-done2{background:var(--line);color:var(--sub);cursor:default;}
+.log-item{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:.5px solid var(--line);}
+.log-item:last-child{border:none;}
+/* 당근 */
+.dp{background:linear-gradient(135deg,#FFF8F0,#FFE8D0);border:1.5px solid #FFD0A0;border-radius:18px;padding:18px;margin-bottom:12px;}
+.db{display:inline-flex;align-items:center;gap:4px;background:var(--orange);color:#fff;font-size:11px;font-weight:900;padding:4px 11px;border-radius:18px;margin-bottom:10px;}
+.dt{font-size:16px;font-weight:900;margin-bottom:9px;line-height:1.4;}
+.dd{font-size:13px;color:#555;line-height:1.8;white-space:pre-line;}
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);}
+.modal-bg.open{display:flex;}
+.modal-box{background:var(--card);border-radius:26px 26px 0 0;padding:10px 18px 38px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:sUp .28s ease;}
+@keyframes sUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.mh{width:34px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 18px;}
+.mt{font-size:19px;font-weight:900;margin-bottom:18px;}
+/* 토스트 */
+.toast{position:fixed;bottom:108px;left:50%;transform:translateX(-50%) translateY(6px);background:rgba(28,28,30,.9);color:#fff;padding:12px 20px;border-radius:13px;font-size:14px;font-weight:700;opacity:0;pointer-events:none;transition:.22s;z-index:9999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.empty{text-align:center;padding:40px 18px;}
+.ei{font-size:44px;margin-bottom:9px;}
+.et{font-size:14px;font-weight:700;color:var(--sub);}
+/* 인쇄 숨김 */
+
+/* ── PWA 설치 배너 ── */
+.install-banner{
+  position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
+  z-index:9000;width:calc(100% - 32px);max-width:480px;
+  background:linear-gradient(135deg,#1C1C1E,#2C2C2E);
+  border-radius:20px;padding:16px 18px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 8px 40px rgba(0,0,0,.4);
+  animation:bannerUp .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes bannerUp{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.install-icon{width:52px;height:52px;background:linear-gradient(135deg,#0A84FF,#0055CC);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 14px rgba(10,132,255,.4);}
+.install-info{flex:1;}
+.install-title{font-size:15px;font-weight:900;color:#fff;margin-bottom:3px;}
+.install-sub{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;}
+.install-btn{background:linear-gradient(135deg,#0A84FF,#0055CC);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-size:14px;font-weight:800;cursor:pointer;font-family:"Pretendard",sans-serif;white-space:nowrap;box-shadow:0 4px 14px rgba(10,132,255,.35);transition:.13s;}
+.install-btn:active{transform:scale(.95);}
+.install-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ios-guide{
+  position:fixed;bottom:108px;left:50%;transform:translateX(-50%);
+  z-index:9000;width:calc(100% - 32px);max-width:480px;
+  background:linear-gradient(135deg,#1C1C1E,#2C2C2E);
+  border-radius:20px;padding:18px;
+  box-shadow:0 8px 40px rgba(0,0,0,.4);
+  animation:bannerUp .4s cubic-bezier(.34,1.56,.64,1);
+}
+.ios-guide-title{font-size:15px;font-weight:900;color:#fff;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.ios-step{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:.5px solid rgba(255,255,255,.1);}
+.ios-step:last-child{border:none;}
+.ios-step-num{width:28px;height:28px;border-radius:50%;background:var(--acc);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ios-step-txt{font-size:13px;color:rgba(255,255,255,.8);font-weight:600;}
+.ios-step-icon{font-size:18px;margin-left:auto;}
+/* 화살표 아이콘 */
+.ios-arrow{position:fixed;bottom:98px;left:50%;transform:translateX(-50%);z-index:9001;font-size:28px;animation:bounce .8s infinite;}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(-6px);}}
+
+#print-area{display:none;position:fixed;top:-99999px;left:-99999px;width:1px;height:1px;overflow:hidden;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="ti">
+    <div class="logo">
+      <div class="logo-icon">P</div>
+      <div>
+        <div class="logo-name">PART<b>FLOW</b></div>
+        <div class="logo-sub">PARTNER HR PLATFORM</div>
+      </div>
+    </div>
+    <input type="month" class="msel" id="base-month" onchange="loadData()">
+  </div>
+</div>
+
+<!-- 파트너 탭 -->
+<div class="page on" id="pg-partner">
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">총 파트너</div><div class="stat-val" style="color:var(--acc)" id="s-count">0명</div></div>
+    <div class="stat"><div class="stat-lbl">이달 인건비</div><div class="stat-val" style="color:var(--green)" id="s-total">₩0</div></div>
+  </div>
+
+  <!-- 업체 설정 -->
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">업체 설정</span></div>
+    <div class="card">
+      <div class="field"><label>업체명 / 상호</label><input class="fin" id="biz-name" placeholder="예: 브런치카페 FOREST" oninput="saveBiz()"></div>
+      <div class="field"><label>대표자명</label><input class="fin" id="biz-owner" placeholder="예: 홍길동" oninput="saveBiz()"></div>
+      <div class="field"><label>사업장 주소</label><input class="fin" id="biz-addr" placeholder="예: 광주 북구 용봉로 77" oninput="saveBiz()"></div>
+      <div class="field"><label>연락처</label><input class="fin" id="biz-phone" placeholder="예: 062-000-0000" oninput="saveBiz()"></div>
+      <div style="background:#E8F1FD;border-radius:10px;padding:10px 14px;font-size:12px;color:#0055CC;font-weight:600;">💡 입력한 정보가 근로계약서에 자동 반영돼요</div>
+    </div>
+  </div>
+
+  <!-- 파트너 등록 -->
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">파트너 등록</span></div>
+    <div class="card">
+      <div class="field"><label>이름</label><input class="fin" id="r-name" placeholder="홍길동"></div>
+      <div class="field"><label>연락처</label><input class="fin" id="r-phone" placeholder="010-0000-0000"></div>
+      <div class="field"><label>카카오톡 연결 방식</label>
+        <select class="fsel" id="r-ktype" onchange="toggleKField()">
+          <option value="id">오픈카톡 ID / 링크</option>
+          <option value="phone">전화번호 카톡</option>
+          <option value="copy">메시지 복사만</option>
+        </select>
+      </div>
+      <div class="field" id="k-field">
+        <label id="k-label">카카오톡 ID / 오픈카톡 링크</label>
+        <input class="fin" id="r-kakao" placeholder="예: partflow123 또는 오픈카톡 URL">
+      </div>
+      <div class="field"><label>입사일</label><input class="fin" id="r-start" type="date"></div>
+      <div class="field"><label>직무</label>
+        <select class="fsel" id="r-role">
+          <option>바리스타</option><option>홀서빙</option><option>주방보조</option>
+          <option>헤어디자이너</option><option>네일아티스트</option><option>필라테스강사</option><option>기타</option>
+        </select>
+      </div>
+      <div class="field"><label>청소 담당 구역</label>
+        <select class="fsel" id="r-clean">
+          <option value="홀 전체">홀 전체 (테이블·의자·바닥)</option>
+          <option value="카운터·바">카운터 및 바 구역</option>
+          <option value="화장실">화장실 청소</option>
+          <option value="주방">주방 및 싱크대</option>
+          <option value="창문·유리">창문 및 유리 닦기</option>
+          <option value="입구·외부">입구 및 외부 구역</option>
+          <option value="전체">전체 구역 순환</option>
+          <option value="없음">청소 담당 없음</option>
+        </select>
+      </div>
+      <div class="field"><label>복장 규정</label>
+        <select class="fsel" id="r-dress">
+          <option value="유니폼 착용">업장 유니폼 착용 (지급)</option>
+          <option value="앞치마 착용">앞치마 착용 (지급)</option>
+          <option value="단정한 캐주얼">단정한 캐주얼 (어두운 계열)</option>
+          <option value="올블랙">올블랙 착용</option>
+          <option value="자유복장">자유복장 (단정한 외모 유지)</option>
+        </select>
+      </div>
+      <div class="field"><label>근무시간 단위</label>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="tu-btn" onclick="setUnit(this,4)">4H</button>
+          <button class="tu-btn on" onclick="setUnit(this,5)">5H</button>
+          <button class="tu-btn" onclick="setUnit(this,6)">6H</button>
+          <button class="tu-btn" onclick="setUnit(this,8)">8H</button>
+          <button class="tu-btn" onclick="setUnit(this,10)">10H</button>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:6px;font-weight:600;" id="unit-desc">AM/PM = 5H · FULL = 10H</div>
+      </div>
+      <button class="btn btn-a" onclick="addPartner()" style="margin-top:4px;">+ 파트너 등록하기</button>
+    </div>
+  </div>
+
+  <!-- 파트너 목록 -->
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">파트너 목록</span></div>
+    <div class="card-flush" id="partner-list">
+      <div class="empty"><div class="ei">👥</div><div class="et">등록된 파트너가 없어요</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 스케줄 탭 -->
+<div class="page" id="pg-schedule">
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">파트너 선택</span></div>
+    <div class="cc-wrap" id="cal-chips"><div style="font-size:13px;color:var(--sub);font-weight:700;padding:9px 3px;">파트너를 먼저 등록하세요</div></div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#E1F0FF;border:1px solid #B0D0F5;"></div>AM</div>
+      <div class="leg"><div class="leg-dot" style="background:#FFF3E0;border:1px solid #FFD599;"></div>PM</div>
+      <div class="leg"><div class="leg-dot" style="background:#E3F9EA;border:1px solid #9FDCB5;"></div>FULL</div>
+      <div class="leg"><div class="leg-dot" style="background:#FFE5E3;border:1px solid #FF9999;"></div>🥕구인</div>
+      <div class="leg" style="font-size:10px;">길게누르기=삭제</div>
+    </div>
+    <div class="card" style="padding:12px;">
+      <div class="cal-grid">
+        <div class="dow s">일</div><div class="dow">월</div><div class="dow">화</div>
+        <div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow sa">토</div>
+      </div>
+      <div class="cal-grid" id="cal-body" style="margin-top:3px;"></div>
+    </div>
+    <div class="cal-info" id="cal-info"></div>
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="btn btn-out btn-sm" style="flex:1" onclick="clearSch()">🗑️ 초기화</button>
+      <button class="btn btn-d btn-sm" style="flex:1" onclick="printSch()">🖨️ 스케줄 출력</button>
+    </div>
+    <div id="dq" style="display:none;margin-top:10px;">
+      <div style="background:linear-gradient(135deg,#FFF8F0,#FFE8D0);border:1.5px solid #FFD0A0;border-radius:16px;padding:14px;">
+        <div style="font-size:13px;font-weight:800;color:var(--orange);margin-bottom:7px;">🥕 당근 구인 공고 자동 생성</div>
+        <div id="dq-text" style="font-size:13px;color:#555;line-height:1.7;white-space:pre-line;margin-bottom:11px;"></div>
+        <div class="btn-row">
+          <button class="btn btn-out btn-sm" style="flex:1" onclick="copyDQ()">📋 복사</button>
+          <button class="btn btn-o btn-sm" style="flex:1" onclick="window.open('https://www.daangn.com/jobs','_blank')">🥕 당근</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 정산 탭 -->
+<div class="page" id="pg-settle">
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">이달 실지급액</div><div class="stat-val" style="color:var(--acc)" id="st-total">₩0</div></div>
+    <div class="stat"><div class="stat-lbl">총 공제액</div><div class="stat-val" style="color:var(--red)" id="st-deduct">₩0</div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-t">파트너별 급여</span>
+      <button onclick="sendAllKakao()" style="background:#FEE500;color:#3A1D1D;border:none;font-size:12px;padding:7px 13px;border-radius:10px;font-weight:800;cursor:pointer;font-family:'Pretendard',sans-serif;">💬 전체카톡</button>
+    </div>
+    <div id="settle-cards"><div class="empty"><div class="ei">💰</div><div class="et">파트너를 등록하세요</div></div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">4대보험 설정</span></div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--sub);font-weight:600;margin-bottom:12px;">주 15시간 이상 근무자 자동 적용 · 2026년 기준</div>
+      <div class="ins-row"><div><div class="ins-name">국민연금</div><div class="ins-sub">근로자 4.5% / 사업주 4.5%</div></div><div class="ins-r"><span class="ins-rate">4.5%</span><button class="tog on" id="t-pen" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
+      <div class="ins-row"><div><div class="ins-name">건강보험</div><div class="ins-sub">근로자 3.545% / 사업주 3.545%</div></div><div class="ins-r"><span class="ins-rate">3.545%</span><button class="tog on" id="t-hea" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
+      <div class="ins-row"><div><div class="ins-name">고용보험</div><div class="ins-sub">근로자 0.9% / 사업주 1.05%~</div></div><div class="ins-r"><span class="ins-rate">0.9%</span><button class="tog on" id="t-emp" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
+      <div class="ins-row"><div><div class="ins-name">소득세 (3.3%)</div><div class="ins-sub">프리랜서 원천징수</div></div><div class="ins-r"><span class="ins-rate">3.3%</span><button class="tog" id="t-inc" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">추가 공제</span></div>
+    <div class="card">
+      <div class="field"><label>항목명</label><input class="fin" id="ex-name" placeholder="식대, 교통비, 선급금"></div>
+      <div class="field"><label>금액 (원)</label><input class="fin" id="ex-amt" placeholder="50000" type="number"></div>
+      <button class="btn btn-d" onclick="addExtra()">공제 항목 추가</button>
+      <div id="ex-list" style="margin-top:10px;"></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">문서 출력</span></div>
+    <div class="card-flush" id="print-list"><div class="empty"><div class="ei">🖨️</div><div class="et">파트너를 등록하면 출력할 수 있어요</div></div></div>
+  </div>
+</div>
+
+<!-- 출퇴근 탭 -->
+<div class="page" id="pg-att">
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">오늘 출근</div><div class="stat-val" style="color:var(--green)" id="att-in">0명</div></div>
+    <div class="stat"><div class="stat-lbl">현재 근무중</div><div class="stat-val" style="color:var(--acc)" id="att-now">0명</div></div>
+  </div>
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;margin-bottom:14px;">
+    <div><div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:4px;">오늘</div><div style="font-size:17px;font-weight:900;" id="today-txt"></div></div>
+    <div style="text-align:right;"><div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:4px;">현재 시각</div><div style="font-size:22px;font-weight:900;color:var(--acc);font-variant-numeric:tabular-nums;" id="clock-txt"></div></div>
+  </div>
+
+  <!-- QR 출퇴근 섹션 -->
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">QR 출퇴근 카드</span></div>
+    <div class="card" style="background:linear-gradient(135deg,#1C1C1E,#2C2C2E);color:#fff;border-radius:18px;">
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:4px;">직원에게 QR을 보여주세요</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">직원이 스캔하면 자동으로 출퇴근 기록돼요</div>
+      <div id="qr-partner-sel" style="display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:4px;-webkit-overflow-scrolling:touch;">
+        <div style="font-size:13px;color:rgba(255,255,255,.5);padding:8px 4px;">파트너를 먼저 등록하세요</div>
+      </div>
+      <div id="qr-display" style="display:none;text-align:center;">
+        <div id="qr-name" style="font-size:18px;font-weight:900;margin-bottom:14px;"></div>
+        <div style="background:#fff;border-radius:16px;padding:16px;display:inline-block;margin-bottom:14px;">
+          <div id="qr-code"></div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <button onclick="doQRCheckin()" style="padding:12px 20px;background:linear-gradient(135deg,#30D158,#1A7A3C);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Pretendard',sans-serif;">✅ 출근 직접 등록</button>
+          <button onclick="doQRCheckout()" style="padding:12px 20px;background:linear-gradient(135deg,#FF453A,#C0392B);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Pretendard',sans-serif;">👋 퇴근 직접 등록</button>
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:10px;">또는 직원이 QR 스캔</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">파트너 출퇴근</span></div>
+    <div class="card-flush" id="att-list"><div class="empty"><div class="ei">⏱️</div><div class="et">파트너를 먼저 등록하세요</div></div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">오늘 근무 기록</span></div>
+    <div class="card-flush" id="att-log"><div class="empty"><div class="ei">📋</div><div class="et">아직 기록이 없어요</div></div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">이달 근태 요약</span></div>
+    <div id="att-summary"><div class="empty"><div class="ei">📊</div><div class="et">출퇴근 기록이 쌓이면 표시돼요</div></div></div>
+  </div>
+</div>
+
+<!-- 당근 탭 -->
+<div class="page" id="pg-daangn">
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-t">구인 공고 설정</span></div>
+    <div class="card">
+      <div class="field"><label>상호명</label><input class="fin" id="d-biz" placeholder="예: 브런치카페 파트플로우"></div>
+      <div class="field"><label>구하는 역할</label>
+        <select class="fsel" id="d-role"><option>바리스타</option><option>홀서빙</option><option>주방보조</option><option>헤어디자이너</option><option>네일아티스트</option><option>기타</option></select>
+      </div>
+      <div class="field"><label>근무 형태</label>
+        <select class="fsel" id="d-type"><option>주 2~3회 파트타임</option><option>주 5일 풀타임</option><option>주말 단기알바</option><option>대타 가능자</option></select>
+      </div>
+      <div class="field"><label>시급 (원)</label><input class="fin" id="d-wage" value="10030" type="number"></div>
+      <div class="field"><label>위치</label><input class="fin" id="d-loc" placeholder="예: 광주 북구 용봉동"></div>
+      <div class="field"><label>어필 한마디</label><input class="fin" id="d-appeal" placeholder="예: 깔끔한 공간, 좋은 팀워크"></div>
+      <button class="btn btn-o" onclick="genDaangn()" style="margin-top:4px;">🥕 당근 공고 자동 생성</button>
+    </div>
+  </div>
+  <div class="sec" id="d-result" style="display:none;">
+    <div class="sec-hd"><span class="sec-t">생성된 공고문</span></div>
+    <div class="dp">
+      <div class="db">🥕 당근마켓 알바</div>
+      <div class="dt" id="d-title"></div>
+      <div class="dd" id="d-body"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-out btn-sm" style="flex:1" onclick="copyD()">📋 복사</button>
+      <button class="btn btn-o btn-sm" style="flex:1" onclick="window.open('https://www.daangn.com/jobs','_blank')">🥕 당근 열기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 역량평가 모달 -->
+<div class="modal-bg" id="eval-modal">
+  <div class="modal-box">
+    <div class="mh"></div>
+    <div class="mt" id="eval-title">역량 평가</div>
+    <div id="eval-qs"></div>
+    <div class="eval-res">
+      <div class="er-row">
+        <div><div class="er-lbl">총점</div><div class="er-val" id="er-score">0 / 60</div></div>
+        <div style="text-align:right;"><div class="er-lbl">확정 시급</div><div class="er-val" id="er-wage" style="color:var(--acc)">₩10,030</div></div>
+      </div>
+      <div class="er-msg" id="er-msg"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-out" style="flex:1" onclick="closeEval()">취소</button>
+      <button class="btn btn-a" style="flex:1" onclick="saveEval()">저장 + 계약서 출력</button>
+    </div>
+  </div>
+</div>
+
+<div id="print-area"></div>
+<div class="toast" id="toast"></div>
+
+<div class="tabbar">
+  <div class="tb-row">
+    <button class="tb on" onclick="showPg('partner',this)"><div class="tb-icon">👥</div><div class="tb-lbl">파트너</div></button>
+    <button class="tb" onclick="showPg('schedule',this)"><div class="tb-icon">🗓️</div><div class="tb-lbl">스케줄</div></button>
+    <button class="tb" onclick="showPg('settle',this)"><div class="tb-icon">💰</div><div class="tb-lbl">정산</div></button>
+    <button class="tb" onclick="showPg('att',this)"><div class="tb-icon">⏱️</div><div class="tb-lbl">출퇴근</div></button>
+    <button class="tb" onclick="showPg('daangn',this)"><div class="tb-icon">🥕</div><div class="tb-lbl">당근</div></button>
+  </div>
+</div>
+
+<script>
+// ── 상수 ──
+const MIN_WAGE = 10030;
+const COLORS = ['#0A84FF','#30D158','#FF9F0A','#FF453A','#BF5AF2','#5AC8FA','#FF6F0F','#64D2FF'];
+const LABELS = ['','AM','PM','FL','구인'];
+const QS = [
+  {q:'서비스 기술 숙련도', h:'음료 제조·서비스 기술이 얼마나 능숙한가요?'},
+  {q:'위생 및 청결 관리', h:'개인위생·작업공간 청결을 잘 유지하나요?'},
+  {q:'시간 준수 및 성실성', h:'지각·무단결근 없이 성실하게 근무하나요?'},
+  {q:'고객 응대 매너', h:'고객에게 친절하고 전문적으로 대응하나요?'},
+  {q:'팀 협업 능력', h:'동료와 원활하게 협업하고 소통하나요?'},
+  {q:'문제 해결 능력', h:'돌발 상황 발생 시 침착하게 해결하나요?'},
+  {q:'업무 이해도 및 적응력', h:'새로운 업무를 빠르게 이해하고 적응하나요?'},
+  {q:'복장 및 용모 단정함', h:'업장 기준에 맞는 복장과 외모를 유지하나요?'},
+  {q:'피크타임 대처 능력', h:'바쁜 시간대에도 흔들림 없이 일 처리하나요?'},
+  {q:'레시피 및 매뉴얼 습득', h:'레시피와 업장 매뉴얼을 잘 숙지하나요?'},
+  {q:'능동적 업무 태도', h:'지시 없이도 스스로 할 일을 찾아 하나요?'},
+  {q:'고객 컴플레인 대처', h:'불만 고객을 능숙하고 친절하게 처리하나요?'}
+];
+
+// ── 상태 ──
+var partners = [];
+var evalScores = Array(12).fill(0);
+var evalIdx = -1;
+var selIdx = 0;
+var extras = [];
+var unit = 5;
+var biz = {name:'',owner:'',addr:'',phone:''};
+var attData = {};
+var dqText = '';
+var daangnText = '';
+
+// ── 헬퍼 ──
+function $(id){ return document.getElementById(id); }
+function fmt(n){ return Math.round(n).toLocaleString(); }
+function getM(){ return $('base-month').value; }
+function key(){ return 'pf4_'+getM(); }
+function save(){ localStorage.setItem(key(), JSON.stringify(partners)); }
+function saveAtt(){ localStorage.setItem('pf4_att', JSON.stringify(attData)); }
+function saveBiz(){ 
+  biz.name = ($('biz-name')||{value:''}).value;
+  biz.owner = ($('biz-owner')||{value:''}).value;
+  biz.addr = ($('biz-addr')||{value:''}).value;
+  biz.phone = ($('biz-phone')||{value:''}).value;
+  localStorage.setItem('pf4_biz', JSON.stringify(biz));
+}
+function getH(v){ if(v===0||v===4) return 0; if(v===3) return unit*2; return unit; }
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2200); }
+
+// ── 초기화 ──
+function loadData(){
+  var d = localStorage.getItem(key());
+  partners = d ? JSON.parse(d) : [];
+  var a = localStorage.getItem('pf4_att');
+  attData = a ? JSON.parse(a) : {};
+  var b = localStorage.getItem('pf4_biz');
+  if(b){ biz=JSON.parse(b); if($('biz-name')){$('biz-name').value=biz.name||'';$('biz-owner').value=biz.owner||'';$('biz-addr').value=biz.addr||'';$('biz-phone').value=biz.phone||'';} }
+  var u = localStorage.getItem('pf4_unit');
+  if(u){ unit=parseInt(u); document.querySelectorAll('.tu-btn').forEach(function(btn){btn.classList.toggle('on',parseInt(btn.textContent)===unit);}); updateUnitDesc(); }
+  renderAll();
+}
+
+function renderAll(){
+  renderPartners();
+  renderCalChips();
+  renderCalendar();
+  renderSettle();
+  renderPrintList();
+  renderAtt();
+  updateStats();
+}
+
+// ── 페이지 전환 ──
+function showPg(id, btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('on');});
+  var pg = document.getElementById('pg-'+id);
+  if(pg) pg.classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(id==='settle'){ renderSettle(); renderPrintList(); }
+  if(id==='schedule'){ renderCalChips(); renderCalendar(); }
+  if(id==='att'){ renderAtt(); }
+}
+
+function updateStats(){
+  $('s-count').textContent = partners.length+'명';
+  var data = calcSettle();
+  $('s-total').textContent = '₩'+fmt(data.reduce(function(a,b){return a+b.ttl;},0));
+}
+
+// ── 업체·단위 ──
+function setUnit(btn,h){
+  unit=h;
+  document.querySelectorAll('.tu-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  localStorage.setItem('pf4_unit',h);
+  updateUnitDesc();
+  toast('근무단위 '+h+'H로 설정됐어요');
+}
+function updateUnitDesc(){ var el=$('unit-desc'); if(el) el.textContent='AM/PM = '+unit+'H · FULL = '+(unit*2)+'H'; }
+
+// ── 카톡 필드 ──
+function toggleKField(){
+  var type=$('r-ktype').value;
+  var field=$('k-field');
+  var label=$('k-label');
+  var input=$('r-kakao');
+  if(type==='copy'){ field.style.display='none'; }
+  else if(type==='phone'){ field.style.display='block'; label.textContent='전화번호'; input.placeholder='010-0000-0000'; input.type='tel'; }
+  else { field.style.display='block'; label.textContent='카카오톡 ID / 오픈카톡 링크'; input.placeholder='예: partflow123'; input.type='text'; }
+}
+
+// ── 파트너 ──
+function addPartner(){
+  var name = $('r-name').value.trim();
+  if(!name){ toast('이름을 입력하세요'); return; }
+  var ktype = $('r-ktype').value;
+  partners.push({
+    name:name, phone:$('r-phone').value.trim(),
+    kakao: ktype==='copy'?'':$('r-kakao').value.trim(),
+    kakaoType:ktype, startDate:$('r-start').value,
+    clean:$('r-clean').value, dress:$('r-dress').value,
+    role:$('r-role').value, color:COLORS[partners.length%COLORS.length],
+    schedule:Array(32).fill(0), wage:MIN_WAGE, score:0, evaluated:false
+  });
+  $('r-name').value=''; $('r-phone').value=''; $('r-kakao').value=''; $('r-start').value='';
+  save(); renderAll(); toast(name+' 등록 완료!');
+}
+
+function renderPartners(){
+  var el=$('partner-list');
+  if(!partners.length){ el.innerHTML='<div class="empty"><div class="ei">👥</div><div class="et">등록된 파트너가 없어요</div></div>'; return; }
+  var html='';
+  partners.forEach(function(p,i){
+    html+='<div class="pi">';
+    html+='<div class="av" style="background:'+p.color+'">'+p.name[0]+'</div>';
+    html+='<div class="pi-info">';
+    html+='<div class="pi-top"><span class="pi-name">'+p.name+'</span><span class="pi-role">'+p.role+'</span>';
+    html+='<span class="pi-st '+(p.evaluated?'st-ok':'st-no')+'">'+(p.evaluated?'평가완료':'미평가')+'</span></div>';
+    html+='<div class="pi-sub">'+(p.phone||'연락처 없음')+(p.startDate?' · 입사 '+p.startDate:'')+'</div>';
+    html+='<div class="pi-sub" style="margin-top:3px;">🧹 '+(p.clean||'청소 미지정')+' · 👔 '+(p.dress||'복장 미지정')+'</div></div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">';
+    html+='<div class="pi-wage" onclick="editWage('+i+')">₩'+p.wage.toLocaleString()+' ✏️</div>';
+    if(p.wage<MIN_WAGE) html+='<span style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:5px;background:#FFE5E3;color:var(--red);">최저시급↓</span>';
+    html+='<div class="chips">';
+    html+='<button class="chip ch-b" onclick="openEval('+i+')">평가</button>';
+    html+='<button class="chip ch-k" onclick="sendKakao('+i+')">💬</button>';
+    html+='<button class="chip ch-r" onclick="delP('+i+')">삭제</button>';
+    html+='</div></div></div>';
+  });
+  el.innerHTML=html;
+}
+
+function delP(i){ if(!confirm(partners[i].name+' 삭제할까요?'))return; partners.splice(i,1); if(selIdx>=partners.length)selIdx=Math.max(0,partners.length-1); save(); renderAll(); }
+
+function editWage(i){
+  var p=partners[i];
+  var v=prompt(p.name+' 시급 수정\n현재: ₩'+p.wage.toLocaleString()+'\n\n⚠️ 최저시급: ₩'+MIN_WAGE.toLocaleString(),p.wage);
+  if(v===null)return;
+  var w=parseInt(v);
+  if(isNaN(w)||w<=0){toast('올바른 금액을 입력하세요');return;}
+  if(w<MIN_WAGE&&!confirm('⚠️ 최저시급(₩'+MIN_WAGE.toLocaleString()+') 이하입니다.\n근로기준법 위반 가능성이 있어요.\n그래도 저장할까요?'))return;
+  partners[i].wage=w; save(); renderAll(); toast(p.name+' 시급 ₩'+w.toLocaleString()+'으로 변경됨');
+}
+
+// ── 카톡 ──
+function sendKakao(i){
+  var p=partners[i];
+  var m=getM(); var mo=parseInt(m.split('-')[1]);
+  var totalH=p.schedule.reduce(function(a,v){return a+getH(v);},0);
+  var pay=Math.round(totalH*p.wage);
+  var msg='[PARTFLOW]\n'+p.name+'님 안녕하세요! 😊\n\n'+mo+'월 정산 안내드립니다.\n근무시간: '+totalH+'H\n예상 급여: ₩'+pay.toLocaleString()+'\n\n수고 많으셨습니다 🙏';
+  var type=p.kakaoType||'copy';
+  var kakao=p.kakao||'';
+  navigator.clipboard.writeText(msg).then(function(){
+    if(type==='id'&&kakao){ toast('메시지 복사됨! 카톡 열어서 붙여넣기 하세요 💬'); setTimeout(function(){if(kakao.startsWith('http'))window.open(kakao,'_blank');else window.open('https://open.kakao.com/o/'+kakao,'_blank');},400); }
+    else if(type==='phone'&&kakao){ toast('메시지 복사됨! 카톡에 붙여넣기 하세요 💬'); }
+    else { toast('✅ 메시지 복사됨! 카톡에 붙여넣기 하세요'); showMsgPreview(p.name,msg); }
+  });
+}
+
+function sendAllKakao(){
+  if(!partners.length){toast('파트너를 먼저 등록하세요');return;}
+  var m=getM(); var mo=parseInt(m.split('-')[1]);
+  var msg='[PARTFLOW '+mo+'월 정산 안내]\n\n';
+  partners.forEach(function(p){
+    var totalH=p.schedule.reduce(function(a,v){return a+getH(v);},0);
+    msg+=p.name+'님: '+totalH+'H · ₩'+Math.round(totalH*p.wage).toLocaleString()+'\n';
+  });
+  msg+='\n수고 많으셨습니다 🙏\nPARTFLOW HR';
+  navigator.clipboard.writeText(msg).then(function(){toast('전체 정산 메시지 복사됐어요!'); showMsgPreview('전체 파트너',msg);});
+}
+
+function showMsgPreview(name,msg){
+  var old=document.getElementById('msg-modal'); if(old)old.remove();
+  var modal=document.createElement('div');
+  modal.id='msg-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);';
+  modal.innerHTML='<div style="background:#fff;border-radius:24px 24px 0 0;padding:12px 18px 36px;width:100%;max-width:640px;">'
+    +'<div style="width:34px;height:4px;background:#E5E5EA;border-radius:2px;margin:0 auto 16px;"></div>'
+    +'<div style="font-size:16px;font-weight:900;margin-bottom:14px;">💬 '+name+'님께 보낼 메시지</div>'
+    +'<div style="background:#FEE500;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.8;white-space:pre-line;color:#333;">'+msg+'</div>'
+    +'<button onclick="document.getElementById(\'msg-modal\').remove()" style="width:100%;padding:14px;background:#0A84FF;color:#fff;border:none;border-radius:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:\'Pretendard\',sans-serif;">닫기</button>'
+    +'</div>';
+  modal.onclick=function(e){if(e.target===modal)modal.remove();};
+  document.body.appendChild(modal);
+}
+
+// ── 역량평가 ──
+function openEval(i){
+  evalIdx=i; evalScores=Array(12).fill(0);
+  $('eval-title').textContent=partners[i].name+' 역량 평가';
+  var html='';
+  QS.forEach(function(q,qi){
+    html+='<div class="q-wrap">';
+    html+='<div class="q-t"><span class="q-num">'+(qi+1)+'.</span>'+q.q+'</div>';
+    html+='<div class="q-hint">💡 '+q.h+'</div>';
+    html+='<div class="sc-row">';
+    [1,2,3,4,5].forEach(function(s){
+      html+='<button class="sc" onclick="setScore('+qi+','+s+',this)">'+s+'</button>';
+    });
+    html+='</div></div>';
+  });
+  $('eval-qs').innerHTML=html;
+  calcEval();
+  $('eval-modal').classList.add('open');
+}
+function closeEval(){ $('eval-modal').classList.remove('open'); }
+function setScore(qi,s,btn){ btn.parentElement.querySelectorAll('.sc').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); evalScores[qi]=s; calcEval(); }
+function calcEval(){
+  var tot=evalScores.reduce(function(a,b){return a+b;},0);
+  var bonus=tot>=55?2500:tot>=50?1800:tot>=40?1000:tot>=30?500:0;
+  $('er-score').textContent=tot+' / 60';
+  $('er-wage').textContent='₩'+(MIN_WAGE+bonus).toLocaleString();
+  var msgs=['📌 기본 — 최저시급','📋 보통 — 기본시급','✅ 양호 — 표준시급','⭐ 우수 — 우수시급','🏆 최우수 — 최고시급'];
+  $('er-msg').textContent=msgs[tot>=55?4:tot>=50?3:tot>=40?2:tot>=30?1:0];
+}
+function saveEval(){
+  var tot=evalScores.reduce(function(a,b){return a+b;},0);
+  var bonus=tot>=55?2500:tot>=50?1800:tot>=40?1000:tot>=30?500:0;
+  partners[evalIdx].wage=MIN_WAGE+bonus; partners[evalIdx].score=tot; partners[evalIdx].evaluated=true;
+  save(); renderAll(); closeEval(); setTimeout(function(){printContract(evalIdx);},400);
+}
+
+// ── 달력 ──
+function renderCalChips(){
+  var el=$('cal-chips');
+  if(!partners.length){ el.innerHTML='<div style="font-size:13px;color:var(--sub);font-weight:700;padding:9px 3px;">파트너를 먼저 등록하세요</div>'; return; }
+  var html='';
+  partners.forEach(function(p,i){
+    var isSel=selIdx===i;
+    html+='<div class="cc'+(isSel?' sel':'')+'" style="'+(isSel?'background:'+p.color+';border-color:'+p.color+';':'')+'" onclick="selP('+i+')">';
+    html+='<div class="cc-dot" style="background:'+(isSel?'rgba(255,255,255,.6)':p.color)+';"></div>';
+    html+=p.name+'</div>';
+  });
+  el.innerHTML=html;
+}
+
+function selP(i){ selIdx=i; renderCalChips(); renderCalendar(); toast(partners[i].name+' 선택됨'); }
+
+function renderCalendar(){
+  var el=$('cal-body');
+  if(!partners.length){ el.innerHTML='<div style="grid-column:span 7;text-align:center;padding:28px;color:var(--sub);font-size:13px;font-weight:700;">파트너를 등록하세요</div>'; return; }
+  var m=getM(); var parts=m.split('-'); var y=parseInt(parts[0]); var mo=parseInt(parts[1]);
+  var last=new Date(y,mo,0).getDate();
+  var first=new Date(y,mo-1,1).getDay();
+  var today=new Date(); var isNow=today.getFullYear()===y&&today.getMonth()+1===mo;
+  var html='';
+  for(var i=0;i<first;i++) html+='<div class="cday emp"></div>';
+  for(var d=1;d<=last;d++){
+    var dow=new Date(y,mo-1,d).getDay();
+    var cls='cday'+(dow===0?' s':dow===6?' sa':'')+(isNow&&today.getDate()===d?' tod':'');
+    var tags='';
+    partners.forEach(function(p,pi){
+      var v=p.schedule[d]||0;
+      if(v>0){
+        var tc=v===1?'t-am':v===2?'t-pm':v===3?'t-fl':'t-hi';
+        tags+='<div class="ctag '+tc+'" style="border-left:2px solid '+p.color+';" onclick="event.stopPropagation();schKakao('+pi+','+d+')">'+p.name[0]+' '+LABELS[v]+' 💬</div>';
+      }
+    });
+    html+='<div class="'+cls+'" onclick="tapDay('+d+')" oncontextmenu="event.preventDefault();delDay('+d+')" ontouchstart="startL('+d+')" ontouchend="clearL()">';
+    html+='<div class="dn">'+d+'</div>'+tags+'</div>';
+  }
+  el.innerHTML=html;
+  if(partners[selIdx]){
+    var p=partners[selIdx];
+    var th=p.schedule.reduce(function(a,v){return a+getH(v);},0);
+    $('cal-info').textContent=p.name+' — 이달 총 '+th+'H · 예상 ₩'+(th*p.wage).toLocaleString()+'원';
+  }
+}
+
+var lt=null;
+function startL(d){ lt=setTimeout(function(){delDay(d);if(navigator.vibrate)navigator.vibrate(50);},600); }
+function clearL(){ clearTimeout(lt); }
+function tapDay(d){
+  if(!partners.length)return;
+  var p=partners[selIdx]; var cur=p.schedule[d]||0; var nv=(cur+1)%5;
+  p.schedule[d]=nv; save(); renderCalendar();
+  if(nv===4) genQuick(selIdx,d);
+  else{ $('dq').style.display='none'; if(nv>0) toast(p.name+' '+d+'일 '+LABELS[nv]+' 등록'); }
+}
+function delDay(d){
+  if(!partners.length)return;
+  var p=partners[selIdx]; if(!(p.schedule[d]||0))return;
+  p.schedule[d]=0; save(); renderCalendar(); $('dq').style.display='none'; toast(p.name+' '+d+'일 삭제됨');
+}
+function clearSch(){
+  if(!partners.length)return;
+  var p=partners[selIdx];
+  if(!confirm(p.name+'의 이달 스케줄을 초기화할까요?'))return;
+  p.schedule=Array(32).fill(0); save(); renderCalendar(); $('dq').style.display='none'; toast('초기화됐어요');
+}
+function genQuick(pi,d){
+  var p=partners[pi]; var m=getM(); var mo=parseInt(m.split('-')[1]);
+  var dow=['일','월','화','수','목','금','토'][new Date(parseInt(m.split('-')[0]),mo-1,d).getDay()];
+  var title='[급구] '+p.role+' '+mo+'월 '+d+'일('+dow+') 🙌';
+  var body='안녕하세요! '+mo+'월 '+d+'일('+dow+') 근무할 '+p.role+'을(를) 급히 구해요 😊\n\n💰 시급: ₩'+p.wage.toLocaleString()+'\n📍 위치: 협의\n✨ 좋은 환경, 즉시 지급 가능\n\n관심 있으신 분 채팅 주세요 🙏';
+  $('dq-text').textContent=title+'\n\n'+body; dqText=title+'\n\n'+body;
+  $('dq').style.display='block'; $('dq').scrollIntoView({behavior:'smooth'}); toast('🥕 당근 구인 공고 생성됨!');
+}
+function copyDQ(){ navigator.clipboard.writeText(dqText).then(function(){toast('복사됐어요! 당근에 붙여넣기 하세요');}); }
+function schKakao(pi,d){
+  var p=partners[pi]; var m=getM(); var mo=parseInt(m.split('-')[1]);
+  var v=p.schedule[d]||0;
+  var tmap={1:'오전(AM) 근무',2:'오후(PM) 근무',3:'풀타임(FULL) 근무',4:'구인 중'};
+  var dow=['일','월','화','수','목','금','토'][new Date(parseInt(m.split('-')[0]),mo-1,d).getDay()];
+  var msg='[PARTFLOW 스케줄]\n'+p.name+'님 안녕하세요! 😊\n\n'+mo+'월 '+d+'일('+dow+') 근무 확정 안내입니다.\n\n⏰ '+tmap[v]+'\n💰 시급: ₩'+p.wage.toLocaleString()+'\n\n문의사항 있으시면 연락주세요 🙏';
+  navigator.clipboard.writeText(msg).then(function(){ toast(p.name+' 스케줄 알림 복사됨! 💬'); showMsgPreview(p.name,msg); });
+}
+
+// ── 스케줄 출력 ──
+function printSch(){
+  var m=getM(); var parts=m.split('-'); var y=parseInt(parts[0]); var mo=parseInt(parts[1]);
+  var last=new Date(y,mo,0).getDate(); var first=new Date(y,mo-1,1).getDay();
+  var dows=['일','월','화','수','목','금','토'];
+  var headers='';
+  for(var d=1;d<=last;d++){
+    var dow=new Date(y,mo-1,d).getDay();
+    var color=dow===0?'#FF453A':dow===6?'#0A84FF':'#555';
+    headers+='<th style="width:24px;text-align:center;font-size:9px;padding:3px 1px;color:'+color+';">'+d+'<br>'+dows[dow][0]+'</th>';
+  }
+  var rows='';
+  partners.forEach(function(p){
+    var cells='';
+    var totalH=0;
+    for(var d=1;d<=last;d++){
+      var v=p.schedule[d]||0; var lbl=v===0?'':LABELS[v];
+      var bg=v===1?'#E1F0FF':v===2?'#FFF3E0':v===3?'#E3F9EA':v===4?'#FFE5E3':'#fff';
+      cells+='<td style="text-align:center;padding:3px 2px;font-size:10px;font-weight:800;background:'+bg+';">'+lbl+'</td>';
+      totalH+=getH(v);
+    }
+    rows+='<tr><td style="padding:6px 8px;font-weight:800;white-space:nowrap;border-right:1px solid #ccc;">'+p.name+'<br><span style="font-size:10px;color:#888;">'+p.role+'</span></td>'+cells+'<td style="text-align:center;font-weight:900;padding:4px 6px;background:#f0f0f0;">'+totalH+'H</td></tr>';
+  });
+  var w=window.open('','_blank','width=1200,height=800');
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PARTFLOW 스케줄 '+y+'.'+String(mo).padStart(2,'0')+'<\/title>');
+  w.document.write('<style>body{font-family:sans-serif;padding:20px;}h2{font-size:16px;font-weight:900;margin-bottom:5px;}.sub{font-size:11px;color:#888;margin-bottom:12px;}table{border-collapse:collapse;width:100%;}th,td{border:.5px solid #ddd;vertical-align:middle;}.leg{display:flex;gap:10px;margin-bottom:10px;font-size:11px;font-weight:700;}.lb{width:12px;height:12px;border-radius:2px;border:1px solid #ccc;}button{margin-top:10px;padding:9px 20px;background:#0A84FF;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;}@media print{button{display:none!important;}}<\/style><\/head><body>');
+  w.document.write('<h2>PARTFLOW 근무 스케줄<\/h2>');
+  w.document.write('<div class="sub">'+y+'년 '+mo+'월 · 파트너 '+partners.length+'명 · 출력일: '+new Date().toLocaleDateString('ko-KR')+'<\/div>');
+  w.document.write('<div class="leg"><div class="leg" style="gap:4px;"><div class="lb" style="background:#E1F0FF"><\/div>AM<\/div><div class="leg" style="gap:4px;"><div class="lb" style="background:#FFF3E0"><\/div>PM<\/div><div class="leg" style="gap:4px;"><div class="lb" style="background:#E3F9EA"><\/div>FULL<\/div><div class="leg" style="gap:4px;"><div class="lb" style="background:#FFE5E3"><\/div>구인<\/div><\/div>');
+  w.document.write('<table><thead><tr><th style="text-align:left;padding:6px 8px;min-width:80px;">파트너<\/th>'+headers+'<th style="min-width:32px;text-align:center;">합계<\/th><\/tr><\/thead><tbody>'+rows+'<\/tbody><\/table>');
+  w.document.write('<button onclick="window.print()">🖨️ 인쇄하기<\/button><\/body><\/html>');
+  w.document.close();
+}
+
+// ── 정산 ──
+function calcSettle(){
+  var m=getM(); var parts=m.split('-'); var y=parseInt(parts[0]); var mo=parseInt(parts[1]);
+  var last=new Date(y,mo,0).getDate(); var first=new Date(y,mo-1,1).getDay();
+  return partners.map(function(p){
+    var totalH=0; var weekly=[0,0,0,0,0,0];
+    for(var d=1;d<=last;d++){
+      var h=getH(p.schedule[d]||0); totalH+=h;
+      weekly[Math.floor((d+first-1)/7)]+=h;
+    }
+    var holiday=0;
+    weekly.forEach(function(h){if(h>=15) holiday+=Math.round((Math.min(h,40)/40)*8*p.wage);});
+    var base=totalH*p.wage;
+    return Object.assign({},p,{totalH:totalH,base:base,holiday:holiday,ttl:base+holiday});
+  });
+}
+function isOn(id){ return $(id).classList.contains('on'); }
+function calcIns(gross,totalH){
+  var o15=totalH>=15;
+  var pen=o15&&isOn('t-pen')?Math.round(gross*.045):0;
+  var hea=o15&&isOn('t-hea')?Math.round(gross*.03545):0;
+  var emp=o15&&isOn('t-emp')?Math.round(gross*.009):0;
+  var inc=isOn('t-inc')?Math.round(gross*.033):0;
+  return{pen:pen,hea:hea,emp:emp,inc:inc,tot:pen+hea+emp+inc};
+}
+function addExtra(){
+  var name=$('ex-name').value.trim(); var amt=parseInt($('ex-amt').value)||0;
+  if(!name||!amt){toast('항목명과 금액을 입력하세요');return;}
+  extras.push({name:name,amt:amt}); $('ex-name').value=''; $('ex-amt').value='';
+  renderExList(); renderSettle(); toast(name+' 추가됨!');
+}
+function renderExList(){
+  var el=$('ex-list'); if(!extras.length){el.innerHTML='';return;}
+  var html='';
+  extras.forEach(function(d,i){
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:.5px solid var(--line);">';
+    html+='<span style="font-size:14px;font-weight:700;">'+d.name+'</span>';
+    html+='<div style="display:flex;align-items:center;gap:9px;"><span style="font-size:14px;font-weight:800;color:var(--red);">-₩'+d.amt.toLocaleString()+'</span>';
+    html+='<button class="chip ch-r" onclick="extras.splice('+i+',1);renderExList();renderSettle();" style="padding:6px 10px;font-size:11px;">삭제</button></div></div>';
+  });
+  el.innerHTML=html;
+}
+function renderSettle(){
+  var data=calcSettle(); var el=$('settle-cards');
+  if(!data.length){ el.innerHTML='<div class="empty"><div class="ei">💰</div><div class="et">파트너를 등록하세요</div></div>'; $('st-total').textContent='₩0'; $('st-deduct').textContent='₩0'; return; }
+  var exTot=extras.reduce(function(a,b){return a+b.amt;},0);
+  var gNet=0,gDed=0;
+  var html='';
+  data.forEach(function(d,i){
+    var ins=calcIns(d.ttl,d.totalH); var ded=ins.tot+exTot; var net=Math.max(0,Math.round(d.ttl)-ded);
+    gNet+=net; gDed+=ded;
+    html+='<div class="sc-card"><div class="sch"><div class="sch-l">';
+    html+='<div class="sc-av" style="background:'+d.color+'">'+d.name[0]+'</div>';
+    html+='<div><div class="sc-name">'+d.name+'</div><div class="sc-sub2">'+d.role+' · '+d.totalH+'H</div></div></div>';
+    html+='<div class="btn-row"><button class="chip ch-b" onclick="printPayslip('+i+')" style="padding:9px 13px;">명세서</button><button class="chip ch-b" onclick="printContract('+i+')" style="padding:9px 13px;">계약서</button></div></div>';
+    html+='<div class="sc-body">';
+    html+='<div class="sc-row"><span class="sc-lbl">기본급</span><span class="sc-v">₩'+fmt(d.base)+'</span></div>';
+    html+='<div class="sc-row"><span class="sc-lbl">주휴수당</span><span class="sc-v">₩'+fmt(d.holiday)+'</span></div>';
+    html+='<div class="sc-row"><span class="sc-lbl">지급 합계</span><span class="sc-v">₩'+fmt(d.ttl)+'</span></div>';
+    if(ins.pen>0) html+='<div class="sc-row"><span class="sc-lbl">- 국민연금</span><span class="sc-v r">₩'+ins.pen.toLocaleString()+'</span></div>';
+    if(ins.hea>0) html+='<div class="sc-row"><span class="sc-lbl">- 건강보험</span><span class="sc-v r">₩'+ins.hea.toLocaleString()+'</span></div>';
+    if(ins.emp>0) html+='<div class="sc-row"><span class="sc-lbl">- 고용보험</span><span class="sc-v r">₩'+ins.emp.toLocaleString()+'</span></div>';
+    if(ins.inc>0) html+='<div class="sc-row"><span class="sc-lbl">- 소득세(3.3%)</span><span class="sc-v r">₩'+ins.inc.toLocaleString()+'</span></div>';
+    extras.forEach(function(e){ html+='<div class="sc-row"><span class="sc-lbl">- '+e.name+'</span><span class="sc-v r">₩'+e.amt.toLocaleString()+'</span></div>'; });
+    html+='<div class="sc-row tot"><span>실수령액</span><span class="sc-v">₩'+net.toLocaleString()+'</span></div>';
+    html+='</div></div>';
+  });
+  el.innerHTML=html;
+  $('st-total').textContent='₩'+gNet.toLocaleString();
+  $('st-deduct').textContent='₩'+gDed.toLocaleString();
+}
+function renderPrintList(){
+  var el=$('print-list');
+  if(!partners.length){ el.innerHTML='<div class="empty"><div class="ei">🖨️</div><div class="et">파트너를 등록하면 출력할 수 있어요</div></div>'; return; }
+  var html='';
+  partners.forEach(function(p,i){
+    html+='<div class="pi"><div class="av" style="background:'+p.color+'">'+p.name[0]+'</div>';
+    html+='<div class="pi-info"><div class="pi-top"><span class="pi-name">'+p.name+'</span><span class="pi-st '+(p.evaluated?'st-ok':'st-no')+'">'+(p.evaluated?'평가완료':'미평가')+'</span></div>';
+    html+='<div class="pi-sub">시급 ₩'+p.wage.toLocaleString()+' · '+p.score+'점</div></div>';
+    html+='<div class="btn-row"><button class="chip ch-b" onclick="printPayslip('+i+')">명세서</button><button class="chip ch-b" onclick="printContract('+i+')">계약서</button></div></div>';
+  });
+  el.innerHTML=html;
+}
+
+// ── 계약서 출력 (새창) ──
+function printContract(i){
+  var p=partners[i];
+  var m=getM(); var mo=parseInt(m.split('-')[1]); var y=parseInt(m.split('-')[0]);
+  var today=y+'년 '+mo+'월 '+new Date().getDate()+'일';
+  var totalH=p.schedule.reduce(function(a,v){return a+getH(v);},0);
+  var ins4=totalH>=15?'국민연금(4.5%)·건강보험(3.545%)·고용보험(0.9%)·산재보험':'주 15시간 미만 — 4대보험 미적용';
+  var weekly=totalH>=15?'주휴수당 포함 (근로기준법 제55조)':'주휴수당 미적용 (주 15시간 미만)';
+  var bn=biz.name||'PARTFLOW 운영 사업장';
+  var bo=biz.owner||'_______________';
+  var ba=biz.addr||'___________________';
+  var bp=biz.phone||'_______________';
+  var w=window.open('','_blank','width=860,height=1100');
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>근로계약서-'+p.name+'<\/title>');
+  w.document.write('<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Malgun Gothic",sans-serif;font-size:13px;line-height:1.9;color:#111;padding:46px 54px;background:#fff;}h1{text-align:center;font-size:21px;font-weight:900;letter-spacing:8px;margin-bottom:5px;}.sub{text-align:center;font-size:11px;color:#777;margin-bottom:26px;}.intro{font-size:12px;margin-bottom:16px;line-height:1.9;border:1px solid #ddd;padding:11px 14px;background:#f9f9f9;border-radius:4px;}table{width:100%;border-collapse:collapse;margin-bottom:13px;}th{background:#f0f0f0;border:1px solid #999;padding:8px 11px;font-size:12px;font-weight:700;text-align:left;width:27%;vertical-align:top;}td{border:1px solid #999;padding:8px 11px;font-size:12px;vertical-align:top;}.st{font-size:13px;font-weight:900;margin:18px 0 7px;border-left:4px solid #0A84FF;padding-left:9px;color:#1a1a2e;}.wbox{background:#e8f1fd;border:2px solid #0A84FF;border-radius:5px;padding:12px 14px;margin-bottom:12px;}.law{background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:11px 14px;margin-bottom:12px;font-size:11px;line-height:2;color:#444;}.law li{margin-left:14px;margin-bottom:2px;}.signs{display:flex;justify-content:space-between;margin-top:46px;gap:26px;}.sbox{flex:1;border:1px solid #999;padding:16px 12px;border-radius:4px;min-height:100px;}.stit{font-size:13px;font-weight:900;margin-bottom:22px;text-align:center;}.sline{border-top:1px solid #333;margin-top:16px;padding-top:6px;font-size:11px;color:#777;text-align:center;}.date{text-align:center;font-size:13px;font-weight:700;margin:16px 0 24px;}.notice{font-size:10px;color:#aaa;text-align:center;margin-top:16px;border-top:1px solid #eee;padding-top:10px;}.pbtn{display:block;margin:16px auto 0;padding:11px 26px;background:#0A84FF;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;}@media print{.pbtn{display:none!important;}@page{margin:16mm;size:A4;}}<\/style><\/head><body>');
+  w.document.write('<h1>표 준 근 로 계 약 서<\/h1>');
+  w.document.write('<div class="sub">(「근로기준법」 제17조에 따른 근로조건 명시)<\/div>');
+  w.document.write('<div class="intro"><strong>사업주(갑)<\/strong>: '+bn+' &nbsp; <strong>대표자<\/strong>: '+bo+' (인)<br><strong>사업장 주소<\/strong>: '+ba+' &nbsp; <strong>연락처<\/strong>: '+bp+'<br><strong>근로자(을)<\/strong>: '+p.name+' &nbsp; <strong>직무<\/strong>: '+p.role+'<br><br>사업주와 근로자는 다음과 같이 근로계약을 체결하고 이를 성실히 이행할 것을 약정합니다.<\/div>');
+  w.document.write('<div class="st">제1조 근무장소 및 업무내용<\/div><table><tr><th>근무 장소<\/th><td>'+ba+'<\/td><\/tr><tr><th>담당 업무<\/th><td>'+p.role+' 관련 업무 일체<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제2조 근로시간 및 휴게<\/div><table><tr><th>근로 형태<\/th><td>파트타임 (시간제 근로) — 스케줄 합의에 따름<\/td><\/tr><tr><th>주간 근무<\/th><td>'+totalH+'H (월 기준 · 변동 가능)<\/td><\/tr><tr><th>휴게시간<\/th><td>4시간 근무 시 30분, 8시간 근무 시 1시간 (근로기준법 제54조)<\/td><\/tr><tr><th>주휴일<\/th><td>'+weekly+'<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제3조 임금<\/div>');
+  w.document.write('<div class="wbox"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;"><span style="font-size:13px;font-weight:700;">확정 시급<\/span><span style="font-size:18px;font-weight:900;color:#0A84FF;">₩'+p.wage.toLocaleString()+' 원<\/span><\/div>');
+  w.document.write('<div style="font-size:11px;color:#555;margin-top:4px;">'+(p.wage>=MIN_WAGE?'✅ 2026년 법정 최저시급(₩10,030) 이상 적용':'⚠️ 최저시급 미달 — 근로기준법 위반 가능')+'<\/div>');
+  w.document.write('<div style="font-size:11px;color:#555;margin-top:4px;">역량평가 점수: '+p.score+'점 / 60점<\/div><\/div>');
+  w.document.write('<table><tr><th>기본 산정<\/th><td>시급 × 근무시간 (월별 스케줄 기준)<\/td><\/tr><tr><th>주휴수당<\/th><td>주 15시간 이상 시 자동 산정 (근로기준법 제55조)<\/td><\/tr><tr><th>지급 방법<\/th><td>근로자 지정 계좌 직접 지급 (근로기준법 제43조)<\/td><\/tr><tr><th>지급일<\/th><td>매월 10일 (익월 정산) — 공휴일이면 전일 지급<\/td><\/tr><tr><th>초과근무<\/th><td>법정근로시간 초과 시 통상임금의 50% 가산 (근로기준법 제56조)<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제4조 사회보험<\/div><table><tr><th>적용 현황<\/th><td>'+ins4+'<\/td><\/tr><tr><th>국민연금<\/th><td>근로자 4.5% / 사업주 4.5%<\/td><\/tr><tr><th>건강보험<\/th><td>근로자 3.545% / 사업주 3.545%<\/td><\/tr><tr><th>고용보험<\/th><td>근로자 0.9% / 사업주 1.05%~1.65%<\/td><\/tr><tr><th>산재보험<\/th><td>전액 사업주 부담<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제5조 계약기간<\/div><table><tr><th>계약 형태<\/th><td>기간의 정함이 없는 근로계약<\/td><\/tr><tr><th>계약 시작일<\/th><td>'+(p.startDate||today)+' 이후 실제 근무 개시일<\/td><\/tr><tr><th>해지 통보<\/th><td>일방 해지 시 30일 전 사전 통보 (근로기준법 제26조)<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제6조 청소 및 위생관리 의무<\/div>');
+  w.document.write('<table><tr><th>담당 구역<\/th><td>'+( p.clean||'별도 협의')+' — 근무 시작 전·후 담당구역 청소 필수<\/td><\/tr>');
+  w.document.write('<tr><th>청소 기준<\/th><td>① 바닥 청소(쓸기·걸레질) ② 테이블·의자 소독 ③ 쓰레기통 비우기 ④ 사용 집기 세척 및 제자리 정리<\/td><\/tr>');
+  w.document.write('<tr><th>위생 의무<\/th><td>식품위생법에 따라 개인 위생 관리를 철저히 하며, 오염 발생 시 즉시 보고·조치한다.<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제7조 복장 및 용모 규정<\/div>');
+  w.document.write('<table><tr><th>복장 기준<\/th><td>'+(p.dress||'업장 기준에 따름')+'<\/td><\/tr>');
+  w.document.write('<tr><th>세부 규정<\/th><td>① 청결하고 단정한 복장 유지 ② 과도한 장신구·향수 사용 금지 ③ 머리카락 청결 유지 (장발 시 묶음) ④ 손톱 청결·짧게 유지 ⑤ 근무 중 슬리퍼·샌들 착용 금지<\/td><\/tr>');
+  w.document.write('<tr><th>유니폼<\/th><td>업장 지급 유니폼은 근무 중 항상 착용하며, 퇴사 시 반납한다. 훼손·분실 시 변상 책임이 있다.<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제8조 기타 근로조건<\/div><div class="law"><ul><li>본 계약에 명시되지 않은 사항은 「근로기준법」 및 관련 법령을 따릅니다.<\/li><li>직장 내 괴롭힘·성희롱 예방에 관한 사항은 「근로기준법」 제76조의2에 따릅니다.<\/li><li>근무 중 음식물 무단 섭취, 개인 SNS 사용, 장시간 통화는 금지한다.<\/li><li>고객 응대 중 불친절 행위, 반말, 폭언은 징계 사유가 된다.<\/li><li>본 계약서는 2부 작성하여 사업주와 근로자가 각 1부씩 보관합니다.<\/li><\/ul><\/div>');
+  w.document.write('<div class="date">'+today+'<\/div>');
+  w.document.write('<div class="signs"><div class="sbox"><div class="stit">사 업 주 (갑)<\/div><div style="font-size:12px;">상호명: '+bn+'<br>대표자: '+bo+'<\/div><div class="sline">서 명 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (인)<\/div><\/div><div class="sbox"><div class="stit">근 로 자 (을)<\/div><div style="font-size:12px;">성명: '+p.name+'<br>연락처: '+(p.phone||'___________')+'<\/div><div class="sline">서 명 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; (인)<\/div><\/div><\/div>');
+  w.document.write('<div class="notice">본 계약서는 「근로기준법」 제17조에 따라 작성되었습니다 · PARTFLOW HR PLATFORM<\/div>');
+  w.document.write('<button class="pbtn" onclick="window.print()">🖨️ A4 인쇄하기<\/button><\/body><\/html>');
+  w.document.close();
+}
+
+// ── 급여명세서 출력 (새창) ──
+function printPayslip(i){
+  var data=calcSettle(); var d=data[i];
+  var ins=calcIns(d.ttl,d.totalH);
+  var exTot=extras.reduce(function(a,b){return a+b.amt;},0);
+  var net=Math.max(0,Math.round(d.ttl)-ins.tot-exTot);
+  var m=getM(); var mo=parseInt(m.split('-')[1]); var y=parseInt(m.split('-')[0]);
+  var bn=biz.name||'PARTFLOW 운영 사업장';
+  var w=window.open('','_blank','width=720,height=960');
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>급여명세서-'+d.name+'<\/title>');
+  w.document.write('<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Malgun Gothic",sans-serif;font-size:13px;line-height:1.8;padding:46px 52px;background:#fff;}h1{text-align:center;font-size:20px;font-weight:900;letter-spacing:6px;margin-bottom:22px;text-decoration:underline;}.hdr{display:flex;justify-content:space-between;margin-bottom:18px;font-size:13px;font-weight:600;}table{width:100%;border-collapse:collapse;margin-bottom:14px;}th{background:#f0f0f0;border:1px solid #999;padding:9px 11px;text-align:left;font-weight:700;width:28%;}td{border:1px solid #999;padding:9px 11px;}.total-row th,.total-row td{background:#e8f1fd;font-size:15px;font-weight:900;}.sign{display:flex;justify-content:space-between;margin-top:46px;}.sline{border-top:1px solid #333;margin-top:26px;padding-top:6px;font-size:11px;color:#777;text-align:center;width:60%;}.pbtn{display:block;margin:16px auto 0;padding:10px 26px;background:#0A84FF;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;}@media print{.pbtn{display:none!important;}@page{margin:16mm;size:A4;}}<\/style><\/head><body>');
+  w.document.write('<h1>급 여 명 세 서<\/h1>');
+  w.document.write('<div class="hdr"><div><strong>성명:<\/strong> '+d.name+' ('+d.role+')<\/div><div><strong>지급월:<\/strong> '+y+'년 '+mo+'월<\/div><\/div>');
+  w.document.write('<table><tr><th>기본급<\/th><td>₩'+fmt(d.base)+'<\/td><\/tr><tr><th>주휴수당<\/th><td>₩'+fmt(d.holiday)+'<\/td><\/tr><tr><th>근무시간<\/th><td>'+d.totalH+'H<\/td><\/tr><tr><th>시급<\/th><td>₩'+d.wage.toLocaleString()+'<\/td><\/tr><\/table>');
+  w.document.write('<table><tr><th colspan="2" style="text-align:center;background:#e8f1fd;">지 급 합 계<\/th><\/tr><tr><th>지급 합계<\/th><td style="font-weight:900;">₩'+fmt(d.ttl)+'<\/td><\/tr><\/table>');
+  w.document.write('<table><tr><th colspan="2" style="text-align:center;background:#fff0f0;">공 제 내 역<\/th><\/tr>');
+  w.document.write('<tr><th>국민연금<\/th><td>₩'+ins.pen.toLocaleString()+'<\/td><\/tr>');
+  w.document.write('<tr><th>건강보험<\/th><td>₩'+ins.hea.toLocaleString()+'<\/td><\/tr>');
+  w.document.write('<tr><th>고용보험<\/th><td>₩'+ins.emp.toLocaleString()+'<\/td><\/tr>');
+  w.document.write('<tr><th>소득세(3.3%)<\/th><td>₩'+ins.inc.toLocaleString()+'<\/td><\/tr>');
+  extras.forEach(function(e){ w.document.write('<tr><th>'+e.name+'<\/th><td>₩'+e.amt.toLocaleString()+'<\/td><\/tr>'); });
+  w.document.write('<tr><th>공제 합계<\/th><td style="color:#FF453A;font-weight:800;">₩'+(ins.tot+exTot).toLocaleString()+'<\/td><\/tr><\/table>');
+  w.document.write('<table class="total-row"><tr><th>실 수 령 액<\/th><td>₩'+net.toLocaleString()+'<\/td><\/tr><\/table>');
+  w.document.write('<div style="font-size:10px;color:#aaa;text-align:center;margin-top:14px;">「근로기준법」 제48조에 따라 발행 · PARTFLOW HR PLATFORM</div>');
+  w.document.write('<button class="pbtn" onclick="window.print()">🖨️ A4 인쇄하기</button></body></html>');
+  w.document.close();
+}
+
+// ── 출퇴근 ──
+function getTodayKey(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
+function getNowTime(){var n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
+function calcWorkH(inT,outT){if(!inT||!outT)return 0;var ih=parseInt(inT.split(':')[0]),im=parseInt(inT.split(':')[1]),oh=parseInt(outT.split(':')[0]),om=parseInt(outT.split(':')[1]);return Math.round(((oh*60+om)-(ih*60+im))/60*10)/10;}
+function getElapsed(inT){var ih=parseInt(inT.split(':')[0]),im=parseInt(inT.split(':')[1]),n=new Date(),mins=(n.getHours()*60+n.getMinutes())-(ih*60+im);if(mins<0)return '0분';return mins<60?mins+'분':Math.floor(mins/60)+'시간 '+(mins%60)+'분';}
+function checkIn(i){
+  var p=partners[i];var today=getTodayKey();
+  if(!attData[today])attData[today]={};
+  if(!attData[today][i])attData[today][i]={};
+  if(attData[today][i].in){toast(p.name+'님은 이미 출근했어요!');return;}
+  attData[today][i].in=getNowTime();saveAtt();renderAtt();
+  toast('✅ '+p.name+' 출근! '+attData[today][i].in);
+}
+function checkOut(i){
+  var p=partners[i];var today=getTodayKey();
+  if(!(attData[today]&&attData[today][i]&&attData[today][i].in)){toast(p.name+'님은 아직 출근 전이에요!');return;}
+  if(attData[today][i].out){toast(p.name+'님은 이미 퇴근했어요!');return;}
+  attData[today][i].out=getNowTime();saveAtt();renderAtt();
+  toast('👋 '+p.name+' 퇴근! 근무 '+calcWorkH(attData[today][i].in,attData[today][i].out)+'시간');
+}
+function renderAtt(){
+  renderQRChips();
+  var le=$('att-list'),ll=$('att-log');if(!le||!ll)return;
+  var today=getTodayKey(),td=attData[today]||{},ic=0,nc=0;
+  if(!partners.length){le.innerHTML='<div class="empty"><div class="ei">⏱️</div><div class="et">파트너를 먼저 등록하세요</div></div>';ll.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">아직 기록이 없어요</div></div>';$('att-in').textContent='0명';$('att-now').textContent='0명';return;}
+  var lh='',loh='',hl=false;
+  partners.forEach(function(p,i){
+    var r=td[i]||{},hi=!!r.in,ho=!!r.out;
+    if(hi)ic++;if(hi&&!ho)nc++;
+    var hrs=(hi&&ho)?calcWorkH(r.in,r.out):0;
+    var el=(hi&&!ho)?getElapsed(r.in):'';
+    var btn=!hi?'<button class="att-btn btn-in" onclick="checkIn('+i+')">출근 ✅</button>':!ho?'<button class="att-btn btn-out2" onclick="checkOut('+i+')">퇴근 👋</button>':'<button class="att-btn btn-done2">'+hrs+'H 완료</button>';
+    var badge=(hi&&!ho)?'<span class="wbadge">'+el+'</span>':'';
+    var dsp=ho?'<span style="background:#E1F0FF;color:var(--acc);font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;margin-left:6px;">퇴근완료</span>':'';
+    var ti=r.in?('출근 '+r.in+(r.out?' · 퇴근 '+r.out:'')+(hrs>0?' · '+hrs+'H':'')):'미출근';
+    lh+='<div class="att-item"><div class="av" style="background:'+p.color+';width:44px;height:44px;">'+p.name[0]+'</div><div class="att-info"><div class="att-name">'+p.name+badge+dsp+'</div><div class="att-time">'+ti+'</div></div><div>'+btn+'</div></div>';
+    if(hi){hl=true;loh+='<div class="log-item"><div><div style="font-size:14px;font-weight:900;">'+p.name+'</div><div style="font-size:12px;color:var(--sub);font-weight:600;">출근 '+r.in+(r.out?' · 퇴근 '+r.out:' · 근무중')+'</div></div><div style="font-size:16px;font-weight:900;color:var(--acc);">'+(hrs>0?hrs+'H':'⏳')+'</div></div>';}
+  });
+  le.innerHTML=lh;ll.innerHTML=hl?loh:'<div class="empty"><div class="ei">📋</div><div class="et">아직 기록이 없어요</div></div>';
+  $('att-in').textContent=ic+'명';$('att-now').textContent=nc+'명';
+  renderAttSummary();
+}
+function renderAttSummary(){
+  var el=$('att-summary');if(!el||!partners.length)return;
+  var html='<div class="card-flush">';
+  partners.forEach(function(p,i){
+    var tm=0,days=0;
+    Object.keys(attData).forEach(function(date){var r=attData[date]&&attData[date][i];if(r&&r.in&&r.out){var ih=parseInt(r.in.split(':')[0]),im=parseInt(r.in.split(':')[1]),oh=parseInt(r.out.split(':')[0]),om=parseInt(r.out.split(':')[1]);tm+=(oh*60+om)-(ih*60+im);days++;}});
+    var th=Math.round(tm/60*10)/10,pay=Math.round(th*p.wage);
+    html+='<div class="pi"><div class="av" style="background:'+p.color+'">'+p.name[0]+'</div><div class="pi-info"><div class="pi-name">'+p.name+'</div><div class="pi-sub">출근 '+days+'일 · 총 '+th+'H</div></div><div style="text-align:right;"><div style="font-size:16px;font-weight:900;color:var(--acc);">₩'+pay.toLocaleString()+'</div><div style="font-size:11px;color:var(--sub);">예상 급여</div></div></div>';
+  });
+  html+='</div>';el.innerHTML=html;
+}
+function updateClock(){
+  var n=new Date(),dows=['일','월','화','수','목','금','토'];
+  var c=$('clock-txt');if(c)c.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+  var dt=$('today-txt');if(dt)dt.textContent=n.getFullYear()+'년 '+(n.getMonth()+1)+'월 '+n.getDate()+'일 ('+dows[n.getDay()]+')';
+  // 출퇴근 탭일 때만 elapsed 갱신
+}
+
+// ── 당근 ──
+function genDaangn(){
+  var bn=($('d-biz').value)||'우리 가게';
+  var role=$('d-role').value,type=$('d-type').value;
+  var wage=parseInt($('d-wage').value)||MIN_WAGE;
+  var loc=($('d-loc').value)||'위치 협의';
+  var appeal=($('d-appeal').value)||'좋은 환경';
+  var title='['+bn+'] '+role+' 구합니다 🙌';
+  var body='안녕하세요! '+bn+'에서 함께할 '+role+'을(를) 구하고 있어요 😊\n\n📍 위치: '+loc+'\n⏰ 근무: '+type+'\n💰 시급: ₩'+wage.toLocaleString()+' (역량 조정 가능)\n✨ '+appeal+'\n\n관심 있으신 분 채팅 주세요 🙏\n\n#'+role+' #알바 #파트타임 #구인';
+  $('d-title').textContent=title;
+  $('d-body').textContent=body;
+  daangnText=title+'\n\n'+body;
+  $('d-result').style.display='block';
+  toast('공고문 생성됐어요!');
+}
+function copyD(){navigator.clipboard.writeText(daangnText).then(function(){toast('복사됐어요! 당근에 붙여넣기 하세요 🥕');});}
+
+// ── INIT ──
+
+/* ── PWA 설치 ── */
+var deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(showInstallBanner, 2000);
+});
+
+window.addEventListener('appinstalled', function(){
+  hideInstallBanner();
+  toast('🎉 PARTFLOW가 설치됐어요!');
+});
+
+function showInstallBanner(){
+  if(document.getElementById('install-banner')) return;
+  var banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.className = 'install-banner';
+  banner.innerHTML =
+    '<div class="install-icon">P</div>' +
+    '<div class="install-info">' +
+      '<div class="install-title">PARTFLOW 설치하기</div>' +
+      '<div class="install-sub">홈 화면에 앱으로 추가</div>' +
+    '</div>' +
+    '<button class="install-btn" onclick="doInstall()">설치</button>' +
+    '<button class="install-close" onclick="hideInstallBanner()">✕</button>';
+  document.body.appendChild(banner);
+}
+
+function hideInstallBanner(){
+  var b = document.getElementById('install-banner');
+  if(b) b.remove();
+  var g = document.getElementById('ios-guide');
+  if(g) g.remove();
+}
+
+function doInstall(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(r){
+      if(r.outcome === 'accepted') toast('🎉 설치 완료! 홈 화면을 확인해보세요');
+      deferredPrompt = null;
+      hideInstallBanner();
+    });
+  }
+}
+
+/* iOS 설치 안내 */
+var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+if(isIOS && !isStandalone){
+  setTimeout(function(){
+    if(document.getElementById('ios-guide')) return;
+    var guide = document.createElement('div');
+    guide.id = 'ios-guide';
+    guide.className = 'ios-guide';
+    guide.innerHTML =
+      '<div class="ios-guide-title">' +
+        '<span>📱 홈 화면에 추가하기</span>' +
+        '<button onclick="hideInstallBanner()" style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:13px;">✕</button>' +
+      '</div>' +
+      '<div class="ios-step">' +
+        '<div class="ios-step-num">1</div>' +
+        '<div class="ios-step-txt">하단 공유 버튼 탭</div>' +
+        '<div class="ios-step-icon">⬆️</div>' +
+      '</div>' +
+      '<div class="ios-step">' +
+        '<div class="ios-step-num">2</div>' +
+        '<div class="ios-step-txt">"홈 화면에 추가" 선택</div>' +
+        '<div class="ios-step-icon">➕</div>' +
+      '</div>' +
+      '<div class="ios-step">' +
+        '<div class="ios-step-num">3</div>' +
+        '<div class="ios-step-txt">PARTFLOW 앱처럼 실행!</div>' +
+        '<div class="ios-step-icon">🎉</div>' +
+      '</div>';
+    document.body.appendChild(guide);
+    setTimeout(function(){hideInstallBanner();}, 8000);
+  }, 3000);
+}
+
+/* 서비스워커 등록 */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+window.onload=function(){
+  var n=new Date();
+  $('base-month').value=n.toISOString().substring(0,7);
+  setInterval(updateClock,1000);
+  updateClock();
+  loadData();
+  handleQRScan();
+  // URL 파라미터로 탭 자동 이동
+  var params=new URLSearchParams(window.location.search);
+  var tab=params.get('tab');
+  if(tab){
+    var tabMap={'partner':0,'schedule':1,'settle':2,'att':3,'daangn':4};
+    var tabs=document.querySelectorAll('.tb');
+    if(tabs[tabMap[tab]]){
+      setTimeout(function(){tabs[tabMap[tab]].click();},300);
+    }
+  }
+};
+
+/* ── QR 출퇴근 ── */
+var qrSelIdx = 0;
+
+function renderQRChips(){
+  var el = document.getElementById('qr-partner-sel');
+  if(!el) return;
+  if(!partners.length){
+    el.innerHTML='<div style="font-size:13px;color:rgba(255,255,255,.5);padding:8px 4px;">파트너를 먼저 등록하세요</div>';
+    var disp=document.getElementById('qr-display');
+    if(disp) disp.style.display='none';
+    return;
+  }
+  var html='';
+  partners.forEach(function(p,i){
+    var sel=qrSelIdx===i;
+    html+='<div onclick="selectQRPartner('+i+')" style="display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:50px;border:2px solid '+(sel?p.color:'rgba(255,255,255,.2)')+';background:'+(sel?p.color:'transparent')+';cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.14s;">';
+    html+='<div style="width:8px;height:8px;border-radius:50%;background:'+(sel?'rgba(255,255,255,.8)':p.color)+';"></div>';
+    html+='<span style="font-size:13px;font-weight:700;color:#fff;">'+p.name+'</span>';
+    html+='</div>';
+  });
+  el.innerHTML=html;
+  showQRCode(qrSelIdx);
+}
+
+function selectQRPartner(i){
+  qrSelIdx=i;
+  renderQRChips();
+}
+
+function showQRCode(i){
+  var p=partners[i];
+  var display=document.getElementById('qr-display');
+  if(!p||!display) return;
+  display.style.display='block';
+  var nameEl=document.getElementById('qr-name');
+  if(nameEl) nameEl.textContent=p.name+' 님';
+  var baseUrl=window.location.href.split('?')[0];
+  var qrUrl=baseUrl+'?att=1&pi='+i+'&pn='+encodeURIComponent(p.name);
+  var qrEl=document.getElementById('qr-code');
+  if(!qrEl) return;
+  qrEl.innerHTML='';
+  if(typeof QRCode!=='undefined'){
+    try{
+      new QRCode(qrEl,{text:qrUrl,width:180,height:180,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+    }catch(e){ qrEl.textContent=qrUrl; }
+  } else {
+    qrEl.innerHTML='<div style="font-size:11px;color:#666;word-break:break-all;">'+qrUrl+'</div>';
+  }
+}
+
+function doQRCheckin(){ checkIn(qrSelIdx); renderQRChips(); }
+function doQRCheckout(){ checkOut(qrSelIdx); renderQRChips(); }
+
+function handleQRScan(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('att')==='1'){
+    var pi=parseInt(params.get('pi'));
+    var pn=decodeURIComponent(params.get('pn')||'');
+    if(isNaN(pi)) return;
+    var today=getTodayKey();
+    if(!attData[today]) attData[today]={};
+    if(!attData[today][pi]) attData[today][pi]={};
+    var rec=attData[today][pi];
+    var action='';
+    if(!rec.in){ rec.in=getNowTime(); action='출근'; }
+    else if(!rec.out){ rec.out=getNowTime(); action='퇴근'; }
+    else { showQRResult(pn,'이미 출퇴근이 완료됐어요!','✅'); return; }
+    saveAtt();
+    showQRResult(pn, action+' 완료! '+getNowTime(), action==='출근'?'✅':'👋');
+    window.history.replaceState({},document.title,window.location.pathname);
+  }
+}
+
+function showQRResult(name,msg,icon){
+  var old=document.getElementById('qr-result-screen'); if(old) old.remove();
+  var screen=document.createElement('div');
+  screen.id='qr-result-screen';
+  screen.style.cssText='position:fixed;inset:0;background:linear-gradient(135deg,#1C1C1E,#2C2C2E);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+  screen.innerHTML='<div style="font-size:80px;margin-bottom:20px;">'+icon+'</div>'
+    +'<div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:10px;">'+name+'</div>'
+    +'<div style="font-size:20px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:40px;">'+msg+'</div>'
+    +'<div style="font-size:14px;color:rgba(255,255,255,.4);">3초 후 자동으로 닫힙니다</div>';
+  document.body.appendChild(screen);
+  setTimeout(function(){screen.remove();},3000);
+}
+
+
+</script>
+</body>
+</html>

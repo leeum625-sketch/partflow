@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PARTFLOW">
+<meta name="theme-color" content="#0A0A14">
+<title>PARTFLOW</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{
+  font-family:'Pretendard',sans-serif;
+  background:#0A0A14;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+/* 배경 */
+.bg{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(10,132,255,.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(48,209,88,.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(191,90,242,.08) 0%, transparent 60%);
+  pointer-events:none;
+}
+/* 헤더 */
+.header{
+  padding:60px 28px 20px;
+  text-align:center;
+}
+.logo-wrap{
+  display:inline-flex;align-items:center;gap:12px;
+  margin-bottom:14px;
+}
+.logo-box{
+  width:52px;height:52px;
+  background:linear-gradient(135deg,#0A84FF,#0044CC);
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:900;color:#fff;
+  box-shadow:0 8px 24px rgba(10,132,255,.4);
+}
+.logo-text{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.05em;}
+.logo-text b{color:#0A84FF;}
+.header-sub{font-size:13px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.05em;}
+
+/* 날짜/시간 */
+.datetime{
+  text-align:center;padding:0 28px 24px;
+}
+.time{font-size:56px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;}
+.date{font-size:14px;color:rgba(255,255,255,.5);font-weight:600;margin-top:6px;}
+
+/* 버튼 그리드 */
+.grid{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  padding:0 20px 20px;
+}
+.btn-card{font-family:"Pretendard",sans-serif;outline:none;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:24px;
+  padding:24px 20px;
+  display:flex;flex-direction:column;
+  align-items:flex-start;
+  cursor:pointer;
+  transition:.18s;
+  position:relative;
+  overflow:hidden;
+  text-decoration:none;
+  -webkit-user-select:none;
+}
+.btn-card:active{transform:scale(.94);opacity:.85;}
+.btn-card.full{grid-column:span 2;}
+.btn-card::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--c1,.3),var(--c2,transparent));
+  opacity:.12;
+  transition:.18s;
+}
+.btn-card:active::before{opacity:.22;}
+.btn-num{
+  font-size:11px;font-weight:900;
+  color:var(--accent,#0A84FF);
+  letter-spacing:.1em;
+  margin-bottom:10px;
+  background:rgba(255,255,255,.07);
+  padding:3px 9px;border-radius:20px;
+}
+.btn-icon{font-size:32px;margin-bottom:10px;line-height:1;}
+.btn-title{font-size:17px;font-weight:900;color:#fff;margin-bottom:4px;line-height:1.2;}
+.btn-sub{font-size:11px;color:rgba(255,255,255,.45);font-weight:600;line-height:1.4;}
+.btn-arrow{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  font-size:18px;color:rgba(255,255,255,.2);
+}
+
+/* 색상 카드별 */
+.c-blue{--c1:#0A84FF;--c2:#003399;--accent:#4AA8FF;}
+.c-green{--c1:#30D158;--c2:#005522;--accent:#4CD96A;}
+.c-orange{--c1:#FF9F0A;--c2:#884400;--accent:#FFBB44;}
+.c-purple{--c1:#BF5AF2;--c2:#550088;--accent:#D080FF;}
+.c-red{--c1:#FF453A;--c2:#880011;--accent:#FF6B63;}
+
+/* 하단바 */
+.bottom{
+  padding:16px 20px 40px;
+  display:flex;gap:10px;
+}
+.bottom-btn{
+  flex:1;padding:14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  text-align:center;
+  cursor:pointer;
+  transition:.15s;
+}
+.bottom-btn:active{transform:scale(.95);}
+.bottom-icon{font-size:20px;display:block;margin-bottom:4px;}
+.bottom-txt{font-size:11px;color:rgba(255,255,255,.5);font-weight:700;}
+
+/* 설치 배너 */
+.install-bar{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(135deg,#0A84FF,#0044CC);
+  padding:16px 20px 36px;
+  flex-direction:column;gap:12px;
+  animation:slideUp .35s ease;
+  z-index:999;
+}
+.install-bar.show{display:flex;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.install-bar-top{display:flex;align-items:center;gap:12px;}
+.install-bar-icon{width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0;}
+.install-bar-info{flex:1;}
+.install-bar-title{font-size:15px;font-weight:900;color:#fff;}
+.install-bar-sub{font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-top:2px;}
+.install-bar-btns{display:flex;gap:8px;}
+.ibtn-install{flex:2;padding:13px;background:#fff;color:#0055CC;border:none;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Pretendard',sans-serif;}
+.ibtn-close{flex:1;padding:13px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;}
+
+/* iOS 안내 */
+.ios-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:#1C1C1E;border-top:1px solid rgba(255,255,255,.1);
+  padding:20px 20px 44px;
+  animation:slideUp .35s ease;z-index:999;
+}
+.ios-bar.show{display:block;}
+.ios-bar-title{font-size:15px;font-weight:900;color:#fff;margin-bottom:16px;display:flex;justify-content:space-between;}
+.ios-steps{display:flex;flex-direction:column;gap:12px;}
+.ios-step{display:flex;align-items:center;gap:12px;}
+.ios-n{width:28px;height:28px;border-radius:50%;background:#0A84FF;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ios-t{font-size:14px;color:rgba(255,255,255,.8);font-weight:600;}
+.ios-em{font-size:18px;margin-left:auto;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo-box">P</div>
+    <div class="logo-text">PART<b>FLOW</b></div>
+  </div>
+  <div class="header-sub">PARTNER HR PLATFORM</div>
+</div>
+
+<div class="datetime">
+  <div class="time" id="time-txt">00:00</div>
+  <div class="date" id="date-txt">2026년 5월</div>
+</div>
+
+<!-- 메인 버튼 그리드 -->
+<div class="grid">
+
+  <!-- 1. 파트너 -->
+  <button class="btn-card c-blue" onclick="openTab('partner')">
+    <div class="btn-num">01</div>
+    <div class="btn-icon">👥</div>
+    <div class="btn-title">파트너<br>관리</div>
+    <div class="btn-sub">등록·평가<br>계약서 출력</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <!-- 2. 스케줄 -->
+  <button class="btn-card c-green" onclick="openTab('schedule')">
+    <div class="btn-num">02</div>
+    <div class="btn-icon">🗓️</div>
+    <div class="btn-title">스케줄<br>등록</div>
+    <div class="btn-sub">달력 클릭<br>AM·PM·FULL</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <!-- 3. 정산 -->
+  <button class="btn-card c-orange" onclick="openTab('settle')">
+    <div class="btn-num">03</div>
+    <div class="btn-icon">💰</div>
+    <div class="btn-title">급여<br>정산</div>
+    <div class="btn-sub">4대보험<br>명세서 출력</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <!-- 4. 출퇴근 -->
+  <button class="btn-card c-purple" onclick="openTab('att')">
+    <div class="btn-num">04</div>
+    <div class="btn-icon">⏱️</div>
+    <div class="btn-title">출퇴근<br>QR</div>
+    <div class="btn-sub">QR 스캔<br>자동 기록</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <!-- 5. 당근 (전체) -->
+  <button class="btn-card c-red full" onclick="openTab('daangn')">
+    <div class="btn-num">05</div>
+    <div class="btn-icon">🥕</div>
+    <div class="btn-title">당근마켓 구인 공고 자동 생성</div>
+    <div class="btn-sub">클릭 한 번으로 공고문 완성</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+</div>
+
+<!-- 하단 빠른 버튼 -->
+<div class="bottom">
+  <div class="bottom-btn" onclick="openTab('partner')">
+    <span class="bottom-icon">📋</span>
+    <div class="bottom-txt">계약서</div>
+  </div>
+  <div class="bottom-btn" onclick="openTab('settle')">
+    <span class="bottom-icon">🖨️</span>
+    <div class="bottom-txt">명세서</div>
+  </div>
+  <div class="bottom-btn" onclick="showInstall()">
+    <span class="bottom-icon">📲</span>
+    <div class="bottom-txt">앱 설치</div>
+  </div>
+</div>
+
+<!-- 안드로이드 설치 배너 -->
+<div class="install-bar" id="install-bar">
+  <div class="install-bar-top">
+    <div class="install-bar-icon">P</div>
+    <div class="install-bar-info">
+      <div class="install-bar-title">PARTFLOW 설치하기</div>
+      <div class="install-bar-sub">홈 화면에 앱으로 추가</div>
+    </div>
+  </div>
+  <div class="install-bar-btns">
+    <button class="ibtn-install" onclick="doInstall()">📲 설치하기</button>
+    <button class="ibtn-close" onclick="hideInstall()">나중에</button>
+  </div>
+</div>
+
+<!-- iOS 안내 -->
+<div class="ios-bar" id="ios-bar">
+  <div class="ios-bar-title">
+    <span>📱 홈 화면에 추가하기</span>
+    <span onclick="hideInstall()" style="color:rgba(255,255,255,.4);cursor:pointer;font-size:22px;">×</span>
+  </div>
+  <div class="ios-steps">
+    <div class="ios-step"><div class="ios-n">1</div><div class="ios-t">하단 공유 버튼 탭</div><div class="ios-em">⬆️</div></div>
+    <div class="ios-step"><div class="ios-n">2</div><div class="ios-t">"홈 화면에 추가" 선택</div><div class="ios-em">➕</div></div>
+    <div class="ios-step"><div class="ios-n">3</div><div class="ios-t">PARTFLOW 앱처럼 실행!</div><div class="ios-em">🎉</div></div>
+  </div>
+</div>
+
+<script>
+var MAIN_URL = 'partflow-final.html';
+var deferredPrompt = null;
+var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+// 탭으로 이동
+function openTab(tab){
+  window.location.href = MAIN_URL + '?tab=' + tab;
+}
+
+// 시계
+function updateClock(){
+  var n = new Date();
+  var dows = ['일','월','화','수','목','금','토'];
+  document.getElementById('time-txt').textContent =
+    String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('date-txt').textContent =
+    n.getFullYear() + '년 ' + (n.getMonth()+1) + '월 ' + n.getDate() + '일 (' + dows[n.getDay()] + ')';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// PWA 설치
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredPrompt = e;
+  if(!isStandalone) setTimeout(function(){ document.getElementById('install-bar').classList.add('show'); }, 2000);
+});
+
+function showInstall(){
+  if(isIOS){ document.getElementById('ios-bar').classList.add('show'); }
+  else if(deferredPrompt){ document.getElementById('install-bar').classList.add('show'); }
+  else { alert('이미 설치됐거나 설치를 지원하지 않는 브라우저예요.\n크롬에서 열어보세요!'); }
+}
+function hideInstall(){
+  document.getElementById('install-bar').classList.remove('show');
+  document.getElementById('ios-bar').classList.remove('show');
+}
+function doInstall(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(r){
+    if(r.outcome==='accepted'){ alert('🎉 설치 완료! 홈 화면을 확인해보세요'); }
+    deferredPrompt = null;
+    hideInstall();
+  });
+}
+
+// iOS 자동 안내
+if(isIOS && !isStandalone){
+  setTimeout(function(){ document.getElementById('ios-bar').classList.add('show'); }, 3000);
+}
+</script>
+</body>
+</html>
