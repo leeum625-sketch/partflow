@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PARTFLOW">
+<meta name="theme-color" content="#0A0A14">
+<title>PARTFLOW</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{
+  font-family:'Pretendard',sans-serif;
+  background:#0D0D18;
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+}
+/* 배경 그라디언트 */
+.bg{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(10,132,255,.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 85%, rgba(48,209,88,.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, rgba(191,90,242,.07) 0%, transparent 55%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* 헤더 */
+.header{
+  position:relative;z-index:1;
+  padding:52px 24px 16px;
+  text-align:center;
+}
+.logo-wrap{
+  display:inline-flex;align-items:center;gap:14px;
+  margin-bottom:12px;
+}
+.logo-box{
+  width:54px;height:54px;
+  background:linear-gradient(135deg,#1A8FFF,#0044CC);
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;font-weight:900;color:#fff;
+  box-shadow:0 8px 28px rgba(10,132,255,.45);
+}
+.logo-text{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.05em;}
+.logo-text b{color:#4AADFF;}
+.header-sub{font-size:11px;color:rgba(255,255,255,.35);font-weight:700;letter-spacing:.2em;text-transform:uppercase;}
+
+/* 시계 */
+.clock-wrap{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:8px 24px 24px;
+}
+.time{
+  font-size:64px;font-weight:900;color:#fff;
+  letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 40px rgba(10,132,255,.3);
+}
+.date{font-size:13px;color:rgba(255,255,255,.45);font-weight:600;margin-top:8px;}
+
+/* 버튼 그리드 */
+.grid{
+  position:relative;z-index:1;
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  padding:0 16px 16px;
+}
+.btn{
+  border:none;
+  border-radius:22px;
+  padding:22px 18px 20px;
+  display:flex;flex-direction:column;
+  align-items:flex-start;
+  cursor:pointer;
+  transition:transform .15s, box-shadow .15s;
+  position:relative;
+  overflow:hidden;
+  text-align:left;
+  min-height:140px;
+}
+.btn:active{transform:scale(.93);}
+.btn.full{grid-column:span 2;min-height:90px;flex-direction:row;align-items:center;gap:16px;padding:20px 24px;}
+.btn-num{
+  font-size:10px;font-weight:900;
+  letter-spacing:.12em;
+  padding:3px 9px;border-radius:20px;
+  margin-bottom:12px;
+  background:rgba(255,255,255,.15);
+  color:rgba(255,255,255,.9);
+}
+.btn.full .btn-num{margin-bottom:0;}
+.btn-icon{font-size:36px;margin-bottom:10px;line-height:1;}
+.btn.full .btn-icon{font-size:32px;margin-bottom:0;flex-shrink:0;}
+.btn-info{flex:1;}
+.btn-title{font-size:18px;font-weight:900;color:#fff;line-height:1.25;margin-bottom:4px;}
+.btn.full .btn-title{font-size:17px;margin-bottom:3px;}
+.btn-sub{font-size:11px;color:rgba(255,255,255,.55);font-weight:600;line-height:1.4;}
+.btn-arrow{
+  position:absolute;right:16px;bottom:16px;
+  font-size:18px;color:rgba(255,255,255,.2);
+}
+.btn.full .btn-arrow{position:static;margin-left:auto;font-size:20px;}
+
+/* 색상별 */
+.c1{background:linear-gradient(145deg,#1055CC,#0A3A99);box-shadow:0 8px 28px rgba(10,84,204,.4);}
+.c2{background:linear-gradient(145deg,#1A7A3C,#0F5228);box-shadow:0 8px 28px rgba(26,122,60,.35);}
+.c3{background:linear-gradient(145deg,#884400,#5C2E00);box-shadow:0 8px 28px rgba(136,68,0,.35);}
+.c4{background:linear-gradient(145deg,#5500AA,#3A0077);box-shadow:0 8px 28px rgba(85,0,170,.35);}
+.c5{background:linear-gradient(145deg,#AA1100,#771000);box-shadow:0 8px 28px rgba(170,17,0,.35);}
+
+/* 하단 바 */
+.bottom{
+  position:relative;z-index:1;
+  display:flex;gap:10px;
+  padding:8px 16px 48px;
+}
+.bbt{
+  flex:1;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  padding:13px 8px;
+  text-align:center;
+  cursor:pointer;
+  transition:.14s;
+  border:none;
+  font-family:'Pretendard',sans-serif;
+}
+.bbt:active{transform:scale(.93);opacity:.8;}
+.bbt-icon{font-size:22px;display:block;margin-bottom:5px;}
+.bbt-txt{font-size:11px;color:rgba(255,255,255,.5);font-weight:700;}
+
+/* 설치 배너 */
+.install-bar{
+  display:none;position:fixed;
+  bottom:0;left:0;right:0;
+  background:linear-gradient(135deg,#0A84FF,#0044CC);
+  padding:18px 20px 44px;
+  z-index:999;
+  animation:slideUp .35s ease;
+}
+.install-bar.show{display:block;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ib-top{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.ib-icon{width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;}
+.ib-title{font-size:16px;font-weight:900;color:#fff;}
+.ib-sub{font-size:11px;color:rgba(255,255,255,.7);font-weight:600;margin-top:2px;}
+.ib-btns{display:flex;gap:8px;}
+.ib-install{flex:2;padding:14px;background:#fff;color:#0055CC;border:none;border-radius:13px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Pretendard',sans-serif;}
+.ib-close{flex:1;padding:14px;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;}
+
+/* iOS 안내 */
+.ios-bar{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  background:#1C1C2E;border-top:1px solid rgba(255,255,255,.1);
+  padding:22px 20px 48px;
+  animation:slideUp .35s ease;z-index:999;
+}
+.ios-bar.show{display:block;}
+.ios-title{font-size:16px;font-weight:900;color:#fff;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+.ios-step{display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+.ios-n{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0A84FF,#0044CC);color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ios-t{font-size:14px;color:rgba(255,255,255,.8);font-weight:600;}
+.ios-em{font-size:20px;margin-left:auto;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+
+<div class="header">
+  <div class="logo-wrap">
+    <div class="logo-box">P</div>
+    <div class="logo-text">PART<b>FLOW</b></div>
+  </div>
+  <div class="header-sub">Partner HR Platform</div>
+</div>
+
+<div class="clock-wrap">
+  <div class="time" id="time-txt">00:00</div>
+  <div class="date" id="date-txt"></div>
+</div>
+
+<div class="grid">
+
+  <button class="btn c1" onclick="go('partner')">
+    <div class="btn-num">01</div>
+    <div class="btn-icon">👥</div>
+    <div class="btn-title">파트너<br>관리</div>
+    <div class="btn-sub">등록·평가<br>계약서 출력</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <button class="btn c2" onclick="go('schedule')">
+    <div class="btn-num">02</div>
+    <div class="btn-icon">🗓️</div>
+    <div class="btn-title">스케줄<br>등록</div>
+    <div class="btn-sub">AM·PM·FULL<br>달력 클릭</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <button class="btn c3" onclick="go('settle')">
+    <div class="btn-num">03</div>
+    <div class="btn-icon">💰</div>
+    <div class="btn-title">급여<br>정산</div>
+    <div class="btn-sub">4대보험<br>명세서 출력</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <button class="btn c4" onclick="go('att')">
+    <div class="btn-num">04</div>
+    <div class="btn-icon">⏱️</div>
+    <div class="btn-title">출퇴근<br>QR</div>
+    <div class="btn-sub">QR 스캔<br>자동 기록</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+  <button class="btn c5 full" onclick="go('daangn')">
+    <div class="btn-icon">🥕</div>
+    <div class="btn-info">
+      <div class="btn-title">당근마켓 구인 공고</div>
+      <div class="btn-sub">클릭 한 번으로 공고문 자동 완성</div>
+    </div>
+    <div class="btn-num" style="margin-bottom:0;">05</div>
+    <div class="btn-arrow">›</div>
+  </button>
+
+</div>
+
+<div class="bottom">
+  <button class="bbt" onclick="go('partner')">
+    <span class="bbt-icon">📋</span>
+    <div class="bbt-txt">계약서</div>
+  </button>
+  <button class="bbt" onclick="go('settle')">
+    <span class="bbt-icon">🖨️</span>
+    <div class="bbt-txt">명세서</div>
+  </button>
+  <button class="bbt" onclick="showInstall()">
+    <span class="bbt-icon">📲</span>
+    <div class="bbt-txt">앱 설치</div>
+  </button>
+</div>
+
+<!-- 안드로이드 설치 배너 -->
+<div class="install-bar" id="install-bar">
+  <div class="ib-top">
+    <div class="ib-icon">P</div>
+    <div>
+      <div class="ib-title">PARTFLOW 설치하기</div>
+      <div class="ib-sub">홈 화면에 앱으로 추가</div>
+    </div>
+  </div>
+  <div class="ib-btns">
+    <button class="ib-install" onclick="doInstall()">📲 홈화면에 추가</button>
+    <button class="ib-close" onclick="hideInstall()">나중에</button>
+  </div>
+</div>
+
+<!-- iOS 안내 -->
+<div class="ios-bar" id="ios-bar">
+  <div class="ios-title">
+    <span>📱 홈 화면에 추가하기</span>
+    <span onclick="hideInstall()" style="color:rgba(255,255,255,.4);cursor:pointer;font-size:24px;line-height:1;">×</span>
+  </div>
+  <div class="ios-step"><div class="ios-n">1</div><div class="ios-t">하단 공유 버튼 탭</div><div class="ios-em">⬆️</div></div>
+  <div class="ios-step"><div class="ios-n">2</div><div class="ios-t">"홈 화면에 추가" 선택</div><div class="ios-em">➕</div></div>
+  <div class="ios-step"><div class="ios-n">3</div><div class="ios-t">PARTFLOW 앱처럼 실행!</div><div class="ios-em">🎉</div></div>
+</div>
+
+<script>
+var MAIN = 'partflow-final.html';
+var deferredPrompt = null;
+var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+function go(tab){
+  window.location.href = MAIN + '?tab=' + tab;
+}
+
+function updateClock(){
+  var n=new Date();
+  var dows=['일','월','화','수','목','금','토'];
+  var h=String(n.getHours()).padStart(2,'0');
+  var m=String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('time-txt').textContent=h+':'+m;
+  document.getElementById('date-txt').textContent=n.getFullYear()+'년 '+(n.getMonth()+1)+'월 '+n.getDate()+'일 ('+dows[n.getDay()]+')';
+}
+setInterval(updateClock,1000);
+updateClock();
+
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;
+  if(!isStandalone) setTimeout(function(){document.getElementById('install-bar').classList.add('show');},2500);
+});
+
+function showInstall(){
+  if(isIOS) document.getElementById('ios-bar').classList.add('show');
+  else if(deferredPrompt) document.getElementById('install-bar').classList.add('show');
+  else alert('사파리 또는 크롬에서 열어주세요!\n하단 공유 버튼 → 홈 화면에 추가');
+}
+function hideInstall(){
+  document.getElementById('install-bar').classList.remove('show');
+  document.getElementById('ios-bar').classList.remove('show');
+}
+function doInstall(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(r){
+    if(r.outcome==='accepted') alert('🎉 설치 완료!');
+    deferredPrompt=null; hideInstall();
+  });
+}
+
+if(isIOS&&!isStandalone){
+  setTimeout(function(){document.getElementById('ios-bar').classList.add('show');},3000);
+}
+</script>
+</body>
+</html>
