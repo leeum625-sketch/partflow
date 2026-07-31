@@ -246,6 +246,11 @@ body{background:var(--bg);font-family:'Pretendard',sans-serif;color:var(--dark);
       <div class="field"><label>사업장 주소</label><input class="fin" id="biz-addr" placeholder="예: 광주 북구 용봉로 77" oninput="saveBiz()"></div>
       <div class="field"><label>연락처</label><input class="fin" id="biz-phone" placeholder="예: 062-000-0000" oninput="saveBiz()"></div>
       <div style="background:#E8F1FD;border-radius:10px;padding:10px 14px;font-size:12px;color:#0055CC;font-weight:600;">💡 입력한 정보가 근로계약서에 자동 반영돼요</div>
+      <div class="field" style="margin-top:14px;">
+        <label>매장 위치 (출퇴근 위치검증용)</label>
+        <div id="biz-loc-status" style="font-size:12.5px;color:var(--sub);font-weight:600;margin-bottom:8px;">위치 미등록 — 등록하면 매장에서 벗어난 출퇴근을 표시해드려요</div>
+        <button class="btn btn-o btn-sm" onclick="registerBizLocation()">📍 지금 이 위치를 매장 위치로 등록</button>
+      </div>
     </div>
   </div>
 
@@ -532,7 +537,7 @@ var evalIdx = -1;
 var selIdx = 0;
 var extras = [];
 var unit = 5;
-var biz = {name:'',owner:'',addr:'',phone:''};
+var biz = {name:'',owner:'',addr:'',phone:'',lat:null,lng:null};
 var attData = {};
 var dqText = '';
 var daangnText = '';
@@ -593,7 +598,7 @@ function loadData(){
   var a = localStorage.getItem('pf4_att');
   attData = a ? JSON.parse(a) : {};
   var b = localStorage.getItem('pf4_biz');
-  if(b){ biz=JSON.parse(b); if($('biz-name')){$('biz-name').value=biz.name||'';$('biz-owner').value=biz.owner||'';$('biz-addr').value=biz.addr||'';$('biz-phone').value=biz.phone||'';} }
+  if(b){ biz=JSON.parse(b); if($('biz-name')){$('biz-name').value=biz.name||'';$('biz-owner').value=biz.owner||'';$('biz-addr').value=biz.addr||'';$('biz-phone').value=biz.phone||'';} updateBizLocStatus(); }
   var u = localStorage.getItem('pf4_unit');
   if(u){ unit=parseInt(u); document.querySelectorAll('.tu-btn').forEach(function(btn){btn.classList.toggle('on',parseInt(btn.textContent)===unit);}); updateUnitDesc(); }
   renderAll();
@@ -610,6 +615,7 @@ function loadData(){
     if(ca){ attData=ca; localStorage.setItem('pf4_att', JSON.stringify(attData)); changed=true; }
     if(cb){ biz=cb; localStorage.setItem('pf4_biz', JSON.stringify(biz));
       if($('biz-name')){$('biz-name').value=biz.name||'';$('biz-owner').value=biz.owner||'';$('biz-addr').value=biz.addr||'';$('biz-phone').value=biz.phone||'';}
+      updateBizLocStatus();
       changed=true;
     }
     if(changed) renderAll();
@@ -1081,7 +1087,47 @@ function printPayslip(i){
   w.document.close();
 }
 
-// ── 출퇴근 ──
+// ── 위치검증 ──
+function haversine(lat1,lng1,lat2,lng2){
+  var R=6371000, toRad=function(d){return d*Math.PI/180;};
+  var dLat=toRad(lat2-lat1), dLng=toRad(lng2-lng1);
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function updateBizLocStatus(){
+  var el=$('biz-loc-status'); if(!el) return;
+  if(biz.lat && biz.lng){ el.textContent='📍 매장 위치 등록됨 — 출퇴근 시 거리 표시돼요'; el.style.color='var(--green)'; }
+  else { el.textContent='위치 미등록 — 등록하면 매장에서 벗어난 출퇴근을 표시해드려요'; el.style.color='var(--sub)'; }
+}
+function registerBizLocation(){
+  if(!navigator.geolocation){ toast('이 브라우저는 위치 기능을 지원하지 않아요'); return; }
+  toast('위치 확인 중…');
+  navigator.geolocation.getCurrentPosition(function(pos){
+    biz.lat=pos.coords.latitude; biz.lng=pos.coords.longitude;
+    localStorage.setItem('pf4_biz', JSON.stringify(biz));
+    cloudPush('PartflowBiz', biz, 'biz');
+    updateBizLocStatus();
+    toast('✅ 매장 위치 등록됐어요');
+  }, function(err){
+    toast('위치 확인 실패 — 브라우저 위치 권한을 확인해주세요');
+  }, {enableHighAccuracy:true, timeout:8000});
+}
+function withGeo(cb){
+  if(!navigator.geolocation){ cb(null,null); return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){ cb(pos.coords.latitude, pos.coords.longitude); },
+    function(){ cb(null,null); },
+    {enableHighAccuracy:true, timeout:6000}
+  );
+}
+function locNote(lat,lng){
+  if(!lat||!biz.lat) return '';
+  var d=Math.round(haversine(biz.lat,biz.lng,lat,lng));
+  if(d>200) return ' · <span style="color:var(--red);font-weight:800;">⚠ 매장에서 '+d+'m</span>';
+  return ' · <span style="color:var(--green);font-weight:700;">매장 반경 내</span>';
+}
+
+
 function getTodayKey(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
 function getNowTime(){var n=new Date();return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
 function calcWorkH(inT,outT){if(!inT||!outT)return 0;var ih=parseInt(inT.split(':')[0]),im=parseInt(inT.split(':')[1]),oh=parseInt(outT.split(':')[0]),om=parseInt(outT.split(':')[1]);return Math.round(((oh*60+om)-(ih*60+im))/60*10)/10;}
@@ -1091,15 +1137,25 @@ function checkIn(i){
   if(!attData[today])attData[today]={};
   if(!attData[today][i])attData[today][i]={};
   if(attData[today][i].in){toast(p.name+'님은 이미 출근했어요!');return;}
-  attData[today][i].in=getNowTime();saveAtt();renderAtt();
-  toast('✅ '+p.name+' 출근! '+attData[today][i].in);
+  var t=getNowTime();
+  attData[today][i].in=t;saveAtt();renderAtt();
+  toast('✅ '+p.name+' 출근! '+t);
+  withGeo(function(lat,lng){
+    if(lat){ attData[today][i].inLat=lat; attData[today][i].inLng=lng; saveAtt(); renderAtt();
+      if(biz.lat){ var d=Math.round(haversine(biz.lat,biz.lng,lat,lng)); if(d>200) toast('⚠ '+p.name+'님 매장에서 '+d+'m 떨어진 곳에서 출근했어요'); }
+    }
+  });
 }
 function checkOut(i){
   var p=partners[i];var today=getTodayKey();
   if(!(attData[today]&&attData[today][i]&&attData[today][i].in)){toast(p.name+'님은 아직 출근 전이에요!');return;}
   if(attData[today][i].out){toast(p.name+'님은 이미 퇴근했어요!');return;}
-  attData[today][i].out=getNowTime();saveAtt();renderAtt();
-  toast('👋 '+p.name+' 퇴근! 근무 '+calcWorkH(attData[today][i].in,attData[today][i].out)+'시간');
+  var t=getNowTime();
+  attData[today][i].out=t;saveAtt();renderAtt();
+  toast('👋 '+p.name+' 퇴근! 근무 '+calcWorkH(attData[today][i].in,t)+'시간');
+  withGeo(function(lat,lng){
+    if(lat){ attData[today][i].outLat=lat; attData[today][i].outLng=lng; saveAtt(); renderAtt(); }
+  });
 }
 function renderAtt(){
   renderQRChips();
@@ -1115,7 +1171,7 @@ function renderAtt(){
     var btn=!hi?'<button class="att-btn btn-in" onclick="checkIn('+i+')">출근 ✅</button>':!ho?'<button class="att-btn btn-out2" onclick="checkOut('+i+')">퇴근 👋</button>':'<button class="att-btn btn-done2">'+hrs+'H 완료</button>';
     var badge=(hi&&!ho)?'<span class="wbadge">'+el+'</span>':'';
     var dsp=ho?'<span style="background:#E1F0FF;color:var(--acc);font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;margin-left:6px;">퇴근완료</span>':'';
-    var ti=r.in?('출근 '+r.in+(r.out?' · 퇴근 '+r.out:'')+(hrs>0?' · '+hrs+'H':'')):'미출근';
+    var ti=r.in?('출근 '+r.in+(r.out?' · 퇴근 '+r.out:'')+(hrs>0?' · '+hrs+'H':'')+locNote(r.inLat,r.inLng)):'미출근';
     lh+='<div class="att-item"><div class="av" style="background:'+p.color+';width:44px;height:44px;">'+p.name[0]+'</div><div class="att-info"><div class="att-name">'+p.name+badge+dsp+'</div><div class="att-time">'+ti+'</div></div><div>'+btn+'</div></div>';
     if(hi){hl=true;loh+='<div class="log-item"><div><div style="font-size:14px;font-weight:900;">'+p.name+'</div><div style="font-size:12px;color:var(--sub);font-weight:600;">출근 '+r.in+(r.out?' · 퇴근 '+r.out:' · 근무중')+'</div></div><div style="font-size:16px;font-weight:900;color:var(--acc);">'+(hrs>0?hrs+'H':'⏳')+'</div></div>';}
   });
