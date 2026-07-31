@@ -371,8 +371,8 @@ body{background:var(--bg);font-family:'Pretendard',sans-serif;color:var(--dark);
     <div class="sec-hd"><span class="sec-t">4대보험 설정</span></div>
     <div class="card">
       <div style="font-size:12px;color:var(--sub);font-weight:600;margin-bottom:12px;">주 15시간 이상 근무자 자동 적용 · 2026년 기준</div>
-      <div class="ins-row"><div><div class="ins-name">국민연금</div><div class="ins-sub">근로자 4.5% / 사업주 4.5%</div></div><div class="ins-r"><span class="ins-rate">4.5%</span><button class="tog on" id="t-pen" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
-      <div class="ins-row"><div><div class="ins-name">건강보험</div><div class="ins-sub">근로자 3.545% / 사업주 3.545%</div></div><div class="ins-r"><span class="ins-rate">3.545%</span><button class="tog on" id="t-hea" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
+      <div class="ins-row"><div><div class="ins-name">국민연금</div><div class="ins-sub">근로자 4.75% / 사업주 4.75%</div></div><div class="ins-r"><span class="ins-rate">4.75%</span><button class="tog on" id="t-pen" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
+      <div class="ins-row"><div><div class="ins-name">건강보험 (+장기요양)</div><div class="ins-sub">근로자 3.595% + 장기요양(건보료의 12.95%)</div></div><div class="ins-r"><span class="ins-rate">3.595%</span><button class="tog on" id="t-hea" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
       <div class="ins-row"><div><div class="ins-name">고용보험</div><div class="ins-sub">근로자 0.9% / 사업주 1.05%~</div></div><div class="ins-r"><span class="ins-rate">0.9%</span><button class="tog on" id="t-emp" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
       <div class="ins-row"><div><div class="ins-name">소득세 (3.3%)</div><div class="ins-sub">프리랜서 원천징수</div></div><div class="ins-r"><span class="ins-rate">3.3%</span><button class="tog" id="t-inc" onclick="this.classList.toggle('on');renderSettle()"></button></div></div>
     </div>
@@ -507,7 +507,7 @@ body{background:var(--bg);font-family:'Pretendard',sans-serif;color:var(--dark);
 
 <script>
 // ── 상수 ──
-const MIN_WAGE = 10030;
+const MIN_WAGE = 10320; /* 2026년 고시 최저시급 (2025년 10,030원 → 2026년 10,320원, 2.9% 인상) */
 const COLORS = ['#0A84FF','#30D158','#FF9F0A','#FF453A','#BF5AF2','#5AC8FA','#FF6F0F','#64D2FF'];
 const LABELS = ['','AM','PM','FL','구인'];
 const QS = [
@@ -542,17 +542,49 @@ function $(id){ return document.getElementById(id); }
 function fmt(n){ return Math.round(n).toLocaleString(); }
 function getM(){ return $('base-month').value; }
 function key(){ return 'pf4_'+getM(); }
-function save(){ localStorage.setItem(key(), JSON.stringify(partners)); }
-function saveAtt(){ localStorage.setItem('pf4_att', JSON.stringify(attData)); }
+function save(){ localStorage.setItem(key(), JSON.stringify(partners)); cloudPush('PartflowPartners', partners, 'partners'); }
+function saveAtt(){ localStorage.setItem('pf4_att', JSON.stringify(attData)); cloudPush('PartflowAttendance', attData, 'att'); }
 function saveBiz(){ 
   biz.name = ($('biz-name')||{value:''}).value;
   biz.owner = ($('biz-owner')||{value:''}).value;
   biz.addr = ($('biz-addr')||{value:''}).value;
   biz.phone = ($('biz-phone')||{value:''}).value;
   localStorage.setItem('pf4_biz', JSON.stringify(biz));
+  cloudPush('PartflowBiz', biz, 'biz');
 }
 function getH(v){ if(v===0||v===4) return 0; if(v===3) return unit*2; return unit; }
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2200); }
+
+// ── 클라우드 동기화 (Wix CMS via Netlify Function) ──
+var CLOUD_API = 'https://partflow-kr.netlify.app/.netlify/functions/data';
+var BIZ_KEY = 'default';
+var cloudIds = { partners:null, att:null, biz:null };
+
+function cloudPush(collection, blobObj, idKey){
+  var body = { businessKey: BIZ_KEY, blob: JSON.stringify(blobObj) };
+  if(cloudIds[idKey]){
+    fetch(CLOUD_API, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({collection:collection, id:cloudIds[idKey], item:body})}).catch(function(){});
+  } else {
+    fetch(CLOUD_API, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({collection:collection, item:body})})
+      .then(function(r){return r.json();})
+      .then(function(d){ if(d && d.ok && d.item && d.item.id) cloudIds[idKey] = d.item.id; })
+      .catch(function(){});
+  }
+}
+
+function cloudPull(collection, idKey){
+  return fetch(CLOUD_API + '?collection=' + collection + '&businessKey=' + BIZ_KEY)
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d && d.ok && d.items && d.items.length){
+        var item = d.items[0];
+        cloudIds[idKey] = item._id;
+        return item.blob ? JSON.parse(item.blob) : null;
+      }
+      return null;
+    })
+    .catch(function(){ return null; });
+}
 
 // ── 초기화 ──
 function loadData(){
@@ -565,6 +597,23 @@ function loadData(){
   var u = localStorage.getItem('pf4_unit');
   if(u){ unit=parseInt(u); document.querySelectorAll('.tu-btn').forEach(function(btn){btn.classList.toggle('on',parseInt(btn.textContent)===unit);}); updateUnitDesc(); }
   renderAll();
+
+  // 클라우드에서 최신 데이터 받아와서 다른 기기 변경사항 반영 (로컬 캐시는 오프라인 폴백용으로 유지)
+  Promise.all([
+    cloudPull('PartflowPartners','partners'),
+    cloudPull('PartflowAttendance','att'),
+    cloudPull('PartflowBiz','biz')
+  ]).then(function(res){
+    var cp=res[0], ca=res[1], cb=res[2];
+    var changed=false;
+    if(cp){ partners=cp; localStorage.setItem(key(), JSON.stringify(partners)); changed=true; }
+    if(ca){ attData=ca; localStorage.setItem('pf4_att', JSON.stringify(attData)); changed=true; }
+    if(cb){ biz=cb; localStorage.setItem('pf4_biz', JSON.stringify(biz));
+      if($('biz-name')){$('biz-name').value=biz.name||'';$('biz-owner').value=biz.owner||'';$('biz-addr').value=biz.addr||'';$('biz-phone').value=biz.phone||'';}
+      changed=true;
+    }
+    if(changed) renderAll();
+  });
 }
 
 function renderAll(){
@@ -888,12 +937,15 @@ function calcSettle(){
 }
 function isOn(id){ return $(id).classList.contains('on'); }
 function calcIns(gross,totalH){
+  /* 2026년 근로자 부담 요율: 국민연금 4.75%, 건강보험 3.595%, 고용보험 0.9% (동일)
+     장기요양보험은 건강보험료의 약 12.95% (2026년 기준, 공단 최종 고시 확인 권장) */
   var o15=totalH>=15;
-  var pen=o15&&isOn('t-pen')?Math.round(gross*.045):0;
-  var hea=o15&&isOn('t-hea')?Math.round(gross*.03545):0;
+  var pen=o15&&isOn('t-pen')?Math.round(gross*.0475):0;
+  var hea=o15&&isOn('t-hea')?Math.round(gross*.03595):0;
+  var ltc=o15&&isOn('t-hea')?Math.round(hea*.1295):0;
   var emp=o15&&isOn('t-emp')?Math.round(gross*.009):0;
   var inc=isOn('t-inc')?Math.round(gross*.033):0;
-  return{pen:pen,hea:hea,emp:emp,inc:inc,tot:pen+hea+emp+inc};
+  return{pen:pen,hea:hea,ltc:ltc,emp:emp,inc:inc,tot:pen+hea+ltc+emp+inc};
 }
 function addExtra(){
   var name=$('ex-name').value.trim(); var amt=parseInt($('ex-amt').value)||0;
@@ -931,6 +983,7 @@ function renderSettle(){
     html+='<div class="sc-row"><span class="sc-lbl">지급 합계</span><span class="sc-v">₩'+fmt(d.ttl)+'</span></div>';
     if(ins.pen>0) html+='<div class="sc-row"><span class="sc-lbl">- 국민연금</span><span class="sc-v r">₩'+ins.pen.toLocaleString()+'</span></div>';
     if(ins.hea>0) html+='<div class="sc-row"><span class="sc-lbl">- 건강보험</span><span class="sc-v r">₩'+ins.hea.toLocaleString()+'</span></div>';
+    if(ins.ltc>0) html+='<div class="sc-row"><span class="sc-lbl">- 장기요양보험</span><span class="sc-v r">₩'+ins.ltc.toLocaleString()+'</span></div>';
     if(ins.emp>0) html+='<div class="sc-row"><span class="sc-lbl">- 고용보험</span><span class="sc-v r">₩'+ins.emp.toLocaleString()+'</span></div>';
     if(ins.inc>0) html+='<div class="sc-row"><span class="sc-lbl">- 소득세(3.3%)</span><span class="sc-v r">₩'+ins.inc.toLocaleString()+'</span></div>';
     extras.forEach(function(e){ html+='<div class="sc-row"><span class="sc-lbl">- '+e.name+'</span><span class="sc-v r">₩'+e.amt.toLocaleString()+'</span></div>'; });
@@ -960,7 +1013,7 @@ function printContract(i){
   var m=getM(); var mo=parseInt(m.split('-')[1]); var y=parseInt(m.split('-')[0]);
   var today=y+'년 '+mo+'월 '+new Date().getDate()+'일';
   var totalH=p.schedule.reduce(function(a,v){return a+getH(v);},0);
-  var ins4=totalH>=15?'국민연금(4.5%)·건강보험(3.545%)·고용보험(0.9%)·산재보험':'주 15시간 미만 — 4대보험 미적용';
+  var ins4=totalH>=15?'국민연금(4.75%)·건강보험(3.595%)·장기요양·고용보험(0.9%)·산재보험':'주 15시간 미만 — 4대보험 미적용';
   var weekly=totalH>=15?'주휴수당 포함 (근로기준법 제55조)':'주휴수당 미적용 (주 15시간 미만)';
   var bn=biz.name||'PARTFLOW 운영 사업장';
   var bo=biz.owner||'_______________';
@@ -980,7 +1033,7 @@ function printContract(i){
   w.document.write('<div style="font-size:11px;color:#555;margin-top:4px;">'+(p.wage>=MIN_WAGE?'✅ 2026년 법정 최저시급(₩10,030) 이상 적용':'⚠️ 최저시급 미달 — 근로기준법 위반 가능')+'<\/div>');
   w.document.write('<div style="font-size:11px;color:#555;margin-top:4px;">역량평가 점수: '+p.score+'점 / 60점<\/div><\/div>');
   w.document.write('<table><tr><th>기본 산정<\/th><td>시급 × 근무시간 (월별 스케줄 기준)<\/td><\/tr><tr><th>주휴수당<\/th><td>주 15시간 이상 시 자동 산정 (근로기준법 제55조)<\/td><\/tr><tr><th>지급 방법<\/th><td>근로자 지정 계좌 직접 지급 (근로기준법 제43조)<\/td><\/tr><tr><th>지급일<\/th><td>매월 10일 (익월 정산) — 공휴일이면 전일 지급<\/td><\/tr><tr><th>초과근무<\/th><td>법정근로시간 초과 시 통상임금의 50% 가산 (근로기준법 제56조)<\/td><\/tr><\/table>');
-  w.document.write('<div class="st">제4조 사회보험<\/div><table><tr><th>적용 현황<\/th><td>'+ins4+'<\/td><\/tr><tr><th>국민연금<\/th><td>근로자 4.5% / 사업주 4.5%<\/td><\/tr><tr><th>건강보험<\/th><td>근로자 3.545% / 사업주 3.545%<\/td><\/tr><tr><th>고용보험<\/th><td>근로자 0.9% / 사업주 1.05%~1.65%<\/td><\/tr><tr><th>산재보험<\/th><td>전액 사업주 부담<\/td><\/tr><\/table>');
+  w.document.write('<div class="st">제4조 사회보험<\/div><table><tr><th>적용 현황<\/th><td>'+ins4+'<\/td><\/tr><tr><th>국민연금<\/th><td>근로자 4.75% / 사업주 4.75%<\/td><\/tr><tr><th>건강보험<\/th><td>근로자 3.595% / 사업주 3.595%<\/td><\/tr><tr><th>장기요양보험<\/th><td>건강보험료의 12.95% (근로자·사업주 각 절반)<\/td><\/tr><tr><th>고용보험<\/th><td>근로자 0.9% / 사업주 1.05%~1.65%<\/td><\/tr><tr><th>산재보험<\/th><td>전액 사업주 부담<\/td><\/tr><\/table>');
   w.document.write('<div class="st">제5조 계약기간<\/div><table><tr><th>계약 형태<\/th><td>기간의 정함이 없는 근로계약<\/td><\/tr><tr><th>계약 시작일<\/th><td>'+(p.startDate||today)+' 이후 실제 근무 개시일<\/td><\/tr><tr><th>해지 통보<\/th><td>일방 해지 시 30일 전 사전 통보 (근로기준법 제26조)<\/td><\/tr><\/table>');
   w.document.write('<div class="st">제6조 청소 및 위생관리 의무<\/div>');
   w.document.write('<table><tr><th>담당 구역<\/th><td>'+( p.clean||'별도 협의')+' — 근무 시작 전·후 담당구역 청소 필수<\/td><\/tr>');
@@ -1017,6 +1070,7 @@ function printPayslip(i){
   w.document.write('<table><tr><th colspan="2" style="text-align:center;background:#fff0f0;">공 제 내 역<\/th><\/tr>');
   w.document.write('<tr><th>국민연금<\/th><td>₩'+ins.pen.toLocaleString()+'<\/td><\/tr>');
   w.document.write('<tr><th>건강보험<\/th><td>₩'+ins.hea.toLocaleString()+'<\/td><\/tr>');
+  w.document.write('<tr><th>장기요양보험<\/th><td>₩'+ins.ltc.toLocaleString()+'<\/td><\/tr>');
   w.document.write('<tr><th>고용보험<\/th><td>₩'+ins.emp.toLocaleString()+'<\/td><\/tr>');
   w.document.write('<tr><th>소득세(3.3%)<\/th><td>₩'+ins.inc.toLocaleString()+'<\/td><\/tr>');
   extras.forEach(function(e){ w.document.write('<tr><th>'+e.name+'<\/th><td>₩'+e.amt.toLocaleString()+'<\/td><\/tr>'); });
